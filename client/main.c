@@ -25,12 +25,14 @@
 #include "src/shared/shell.h"
 #include "src/shared/util.h"
 #include "gdbus/gdbus.h"
+#include "main.h"
 #include "agent.h"
 #include "gatt.h"
 #include "advertising.h"
 #include "adv_monitor.h"
 #include "admin.h"
 #include "player.h"
+#include "leattrtest.h"
 
 /* String display constants */
 #define COLORED_NEW	COLOR_GREEN "NEW" COLOR_OFF
