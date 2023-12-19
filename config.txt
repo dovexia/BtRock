@@ -1,0 +1,3 @@
+./configure --enable-asan --enable-lsan --enable-ubsan --enable-a2dp --enable-avrcp --enable-sap --enable-hid --enable-debug --enable-mesh --enable-test --enable-testing --enable-logger --enable-library --enable-threads --disable-optimization --disable-systemd --disable-silent-rules --disable-obex --disable-network --disable-cups --disable-datafiles --disable-manpages --enable-experimental --enable-deprecated --enable-tools --enable-btpclient --sysconfdir=/etc --localstatedir=/userdata
+
+
