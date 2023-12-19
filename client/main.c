@@ -25,12 +25,14 @@
 #include "src/shared/shell.h"
 #include "src/shared/util.h"
 #include "gdbus/gdbus.h"
+#include "main.h"
 #include "agent.h"
 #include "gatt.h"
 #include "advertising.h"
 #include "adv_monitor.h"
 #include "admin.h"
 #include "player.h"
+#include "leattrtest.h"
 
 /* String display constants */
 #define COLORED_NEW	COLOR_GREEN "NEW" COLOR_OFF
@@ -2895,6 +2897,11 @@ static void cmd_adv_monitor_get_supported_info(int argc, char *argv[])
 	adv_monitor_get_supported_info();
 }
 
+static void cmd_leattr_getleaddr(int argc, char *argv[])
+{
+    bt_shell_printf("cmd_leattr_getleaddr: return AA:BB:CC:DD:EE:FF\n");
+}
+
 static const struct bt_shell_menu advertise_menu = {
 	.name = "advertise",
 	.desc = "Advertise Options Submenu",
@@ -2963,6 +2970,21 @@ static const struct bt_shell_menu advertise_monitor_menu = {
 	{ "print-usage", "<add-or-pattern>",
 				cmd_adv_monitor_print_usage,
 				"Print the command usage"},
+	{ } },
+};
+
+/* leattr menu is test all the le features define bluetooth core spec
+ * most apis is to verify the hci command
+ * some api will use the bluetooth api, and some api will directly write hci command
+ */
+static const struct bt_shell_menu leattr_menu = {
+	.name = "leattr",
+	.desc = "LE attribute Submenu",
+	.entries = {
+	{ "getleaddr", "[uuid1 uuid2 ...]", cmd_leattr_getleaddr,
+			"Set/Get advertise uuids" },
+	{ "clear", "[uuids/service/manufacturer/config-name...]", cmd_ad_clear,
+			"Clear advertise config" },
 	{ } },
 };
 
@@ -3149,6 +3171,7 @@ int main(int argc, char *argv[])
 	bt_shell_set_menu(&main_menu);
 	bt_shell_add_submenu(&advertise_menu);
 	bt_shell_add_submenu(&advertise_monitor_menu);
+	bt_shell_add_submenu(&leattr_menu);
 	bt_shell_add_submenu(&scan_menu);
 	bt_shell_add_submenu(&gatt_menu);
 	bt_shell_set_prompt(PROMPT_OFF);
