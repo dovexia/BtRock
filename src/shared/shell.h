@@ -10,6 +10,8 @@
 #include <getopt.h>
 #include <stdbool.h>
 
+#ifndef _SHARED_SHELL_H
+#define _SHARED_SHELL_H
 #define COLOR_OFF	"\001\x1B[0m\002"
 #define COLOR_RED	"\001\x1B[0;91m\002"
 #define COLOR_GREEN	"\001\x1B[0;92m\002"
@@ -84,3 +86,5 @@ void bt_shell_set_env(const char *name, void *value);
 void *bt_shell_get_env(const char *name);
 
 void bt_shell_cleanup(void);
+
+#endif //_SHARED_SHELL_H

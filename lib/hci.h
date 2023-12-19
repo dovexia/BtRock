@@ -1472,6 +1472,8 @@ typedef struct {
 	uint8_t		max_pkt;
 } __attribute__ ((packed)) le_read_buffer_size_rp;
 #define LE_READ_BUFFER_SIZE_RP_SIZE 4
+#define OCF_LE_Read_Buffer_Size_v1              0x0002
+#define OCF_LE_Read_Buffer_Size_v2              0x0060
 
 #define OCF_LE_READ_LOCAL_SUPPORTED_FEATURES	0x0003
 typedef struct {
@@ -1684,6 +1686,9 @@ typedef struct {
 	uint8_t		frequency;
 } __attribute__ ((packed)) le_receiver_test_cp;
 #define LE_RECEIVER_TEST_CP_SIZE 1
+#define OCF_LE_Receiver_Test_v3 0x004F
+#define OCF_LE_Receiver_Test_v2 0x0033
+#define OCF_LE_Receiver_Test_v1 0x001D
 
 #define OCF_LE_TRANSMITTER_TEST			0x001E
 typedef struct {
@@ -1693,12 +1698,26 @@ typedef struct {
 } __attribute__ ((packed)) le_transmitter_test_cp;
 #define LE_TRANSMITTER_TEST_CP_SIZE 3
 
+#define OCF_LE_Transmitter_Test_v4 0x007B
+#define OCF_LE_Transmitter_Test_v3 0x0050
+#define OCF_LE_Transmitter_Test_v2 0x0034
+#define OCF_LE_Transmitter_Test_v1 0x001E
+
 #define OCF_LE_TEST_END				0x001F
 typedef struct {
 	uint8_t		status;
 	uint16_t	num_pkts;
 } __attribute__ ((packed)) le_test_end_rp;
 #define LE_TEST_END_RP_SIZE 3
+
+#define OCF_LE_REMOTE_CONNECTION_PARAMETER_REQUEST_REPLY 0x0020
+#define OCF_LE_Remote_Connection_Parameter_Request_Negative_Reply 0x0021
+#define OCF_LE_Set_Data_Length 0x0022
+#define OCF_LE_Read_Suggested_Default_Data_Length 0x0023
+#define OCF_LE_Write_Suggested_Default_Data_Length 0x0024
+#define OCF_LE_Read_Local_P_256_Public_Key 0x0025
+#define OCF_LE_Generate_DHKey_v1 0x0026
+#define OCF_LE_Generate_DHKey_v2 0x005E
 
 #define OCF_LE_ADD_DEVICE_TO_RESOLV_LIST	0x0027
 typedef struct {
@@ -1724,12 +1743,98 @@ typedef struct {
 	uint8_t		size;
 } __attribute__ ((packed)) le_read_resolv_list_size_rp;
 #define LE_READ_RESOLV_LIST_SIZE_RP_SIZE 2
+#define OCF_LE_Read_Peer_Resolvable_Address 0x002B
+#define OCF_LE_Read_Local_Resolvable_Address 0x002c
 
 #define OCF_LE_SET_ADDRESS_RESOLUTION_ENABLE	0x002D
 typedef struct {
 	uint8_t		enable;
 } __attribute__ ((packed)) le_set_address_resolution_enable_cp;
 #define LE_SET_ADDRESS_RESOLUTION_ENABLE_CP_SIZE 1
+
+
+#define OCF_LE_Set_Resolvable_Private_Address_Timeout 002E
+#define OCF_LE_Read_Maximum_Data_Length 0x002F
+#define OCF_LE_Read_PHY 0x0030
+#define OCF_LE_Set_Default_PHY 0x0031
+#define OCF_LE_Set_PHY 0x0032
+#define OCF_LE_Set_Advertising_Set_Random_Address 0x0035
+#define OCF_LE_Set_Extended_Advertising_Parameters 0x0036
+#define OCF_LE_Set_Extended_Advertising_Parameters_v1 0x0036
+#define OCF_LE_Set_Extended_Advertising_Parameters_v2 0x007F
+#define OCF_LE_Set_Extended_Advertising_Data 0x0037
+#define OCF_LE_Set_Extended_Scan_Response_Data 0x0038
+#define OCF_LE_Set_Extended_Advertising_Enable 0x0039
+#define OCF_LE_Read_Maximum_Advertising_Data_Length 0x003A
+#define OCF_LE_Read_Number_of_Supported_Advertising_Sets 0x003B
+#define OCF_LE_Remove_Advertising_Set 0x003C
+#define OCF_LE_Clear_Advertising_Sets 0x003D
+#define OCF_LE_Set_Periodic_Advertising_Parameters 0x003E
+#define OCF_LE_Set_Periodic_Advertising_Parameters_v1 0x003E
+#define OCF_LE_Set_Periodic_Advertising_Parameters_v2 0x0086
+#define OCF_LE_Set_Periodic_Advertising_Data 0x003F
+#define OCF_LE_Set_Periodic_Advertising_Enable 0x0040
+#define OCF_LE_Set_Extended_Scan_Parameters 0x0041
+#define OCF_LE_Set_Extended_Scan_Enable 0x0042
+#define OCF_LE_Extended_Create_Connection_v1 0x0043
+#define OCF_LE_Extended_Create_Connection_v2 0x85
+#define OCF_LE_Periodic_Advertising_Create_Sync 0x0044
+#define OCF_LE_Periodic_Advertising_Create_Sync_Cancel 0x0045
+#define OCF_LE_Periodic_Advertising_Terminate_Sync 0x0046
+#define OCF_LE_Add_Device_To_Periodic_Advertiser_List 0x0047
+#define OCF_LE_Remove_Device_From_Periodic_Advertiser_List 0x0048
+#define OCF_LE_Clear_Periodic_Advertiser_List 0x0049
+#define OCF_LE_Read_Periodic_Advertiser_List_Size 0x004A
+#define OCF_LE_Read_Transmit_Power 0x004B
+#define OCF_LE_Read_RF_Path_Compensation 0x004C
+#define OCF_LE_Write_RF_Path_Compensation 0x004D
+#define OCF_LE_Set_Privacy_Mode 0x004E
+#define OCF_LE_Set_Connectionless_CTE_Transmit_Parameters 0x0051
+#define OCF_LE_Set_Connectionless_CTE_Transmit_Enable 0x0052
+#define OCF_LE_Set_Connectionless_IQ_Sampling_Enable 0x0053
+#define OCF_LE_Set_Connection_CTE_Receive_Parameters 0x0054
+#define OCF_LE_Set_Connection_CTE_Transmit_Parameters 0x0055
+#define OCF_LE_Connection_CTE_Request_Enable 0x0056
+#define OCF_LE_Connection_CTE_Response_Enable 0x0057
+#define OCF_LE_Read_Antenna_Information 0x0058
+#define OCF_LE_Set_Periodic_Advertising_Receive_Enable 0x0059
+#define OCF_LE_Periodic_Advertising_Sync_Transfer 0x005A
+#define OCF_LE_Periodic_Advertising_Set_Info_Transfer 0x005B
+#define OCF_LE_Set_Periodic_Advertising_Sync_Transfer_Parameters 0x005C
+#define OCF_LE_Set_Default_Periodic_Advertising_Sync_Transfer_Parameters 0x005D
+#define OCF_LE_Modify_Sleep_Clock_Accuracy 0x005F
+#define OCF_LE_Read_ISO_TX_Sync 0x0061
+#define OCF_LE_Set_CIG_Parameters 0x0062
+#define OCF_LE_Set_CIG_Parameters_Test 0x0063
+#define OCF_LE_Create_CIS 0x0064
+#define OCF_LE_Remove_CIG 0x0065
+#define OCF_LE_Accept_CIS_Request 0x0066
+#define OCF_LE_Reject_CIS_Request 0x0067
+#define OCF_LE_Create_BIG 0x0068
+#define OCF_LE_Create_BIG_Test 0x0069
+#define OCF_LE_Terminate_BIG 0x006A
+#define OCF_LE_BIG_Create_Sync 0x006B
+#define OCF_LE_BIG_Terminate_Sync 0x006C
+#define OCF_LE_Request_Peer_SCA 0x006D
+#define OCF_LE_Setup_ISO_Data_Path 0x006E
+#define OCF_LE_Remove_ISO_Data_Path 0x006F
+#define OCF_LE_ISO_Transmit_Test 0x0070
+#define OCF_LE_ISO_Receive_Test 0x0071
+#define OCF_LE_ISO_Read_Test_Counters 0x0072
+#define OCF_LE_ISO_Test_End 0x0073
+#define OCF_LE_Set_Host_Feature 0x0074
+#define OCF_LE_Read_ISO_Link_Quality 0x0075
+#define OCF_LE_Enhanced_Read_Transmit_Power_Level 0x0076
+#define OCF_LE_Read_Remote_Transmit_Power_Level 0x0077
+#define OCF_LE_Set_Path_Loss_Reporting_Parameters 0x0078
+#define OCF_LE_Set_Path_Loss_Reporting_Enable 0x0079
+#define OCF_LE_Set_Transmit_Power_Reporting_Enable 0x007A
+#define OCF_LE_Set_Data_Related_Address_Changes 0x007C
+#define OCF_LE_Set_Default_Subrate 0x007D
+#define OCF_LE_Subrate_Request 0x007E
+#define OCF_LE_Set_Periodic_Advertising_Subevent_Data 0x82
+#define OCF_LE_Set_Periodic_Advertising_Response_Data 0x83
+#define OCF_LE_Set_Periodic_Sync_Subevent 0x84
 
 /* Vendor specific commands */
 #define OGF_VENDOR_CMD		0x3f
@@ -2189,6 +2294,43 @@ typedef struct {
 	uint16_t	diversifier;
 } __attribute__ ((packed)) evt_le_long_term_key_request;
 #define EVT_LE_LTK_REQUEST_SIZE 12
+
+#define EVT_LE_Remote_Connection_Parameter_Request 0x06
+#define EVT_LE_Data_Length_Change               0x07
+#define EVT_LE_Read_Local_P_256_Public_Key_Complete 0x08
+#define EVT_LE_Generate_DHKey_Complete 0x09
+#define EVT_LE_Enhanced_Connection_Complete_v1 0x0A
+#define EVT_LE_Enhanced_Connection_Complete_v2 0x29
+#define EVT_LE_Directed_Advertising_Report 0x0B
+#define EVT_LE_PHY_Update_Complete 0x0C
+#define EVT_LE_Extended_Advertising_Report 0x0D
+#define EVT_LE_Periodic_Advertising_Sync_Established_v1 0x0E
+#define EVT_LE_Periodic_Advertising_Sync_Established_v2 0x24
+#define EVT_LE_Periodic_Advertising_Report_v1 0x0F
+#define EVT_LE_Periodic_Advertising_Report_v2 0x25
+#define EVT_LE_Periodic_Advertising_Sync_Lost 0x10
+#define EVT_LE_Scan_Timeout  0x11
+#define EVT_LE_Advertising_Set_Terminated 0x12
+#define EVT_LE_Scan_Request_Received 0x13
+#define EVT_LE_Channel_Selection_Algorithm 0x14
+#define EVT_LE_Connectionless_IQ_Report 0x15
+#define EVT_LE_Connection_IQ_Report 0x16
+#define EVT_LE_CTE_Request_Failed 0x17
+#define EVT_LE_Periodic_Advertising_Sync_Transfer_Received_v1 0x18
+#define EVT_LE_Periodic_Advertising_Sync_Transfer_Received_v2 0x26
+#define EVT_LE_CIS_Established 0x19
+#define EVT_LE_CIS_Request 0x1A
+#define EVT_LE_Create_BIG_Complete 0x1B
+#define EVT_LE_Terminate_BIG_Complete 0x1C
+#define EVT_LE_BIG_Sync_Established 0x1D
+#define EVT_LE_BIG_Sync_Lost 0x1E
+#define EVT_LE_Request_Peer_SCA_Complete 0x1F
+#define EVT_LE_Path_Loss_Threshold 0x20
+#define EVT_LE_Transmit_Power_Reporting 0x21
+#define EVT_LE_BIGInfo_Advertising_Report 0x22
+#define EVT_LE_Subrate_Change 0x23
+#define EVT_LE_Periodic_Advertising_Subevent_Data_Request 0x27
+#define EVT_LE_Periodic_Advertising_Response_Report 0x28
 
 #define EVT_PHYSICAL_LINK_COMPLETE		0x40
 typedef struct {
