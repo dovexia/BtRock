@@ -37,9 +37,10 @@ struct hci_version {
 
 int hci_open_dev(int dev_id);
 int hci_close_dev(int dd);
-int hci_send_cmd(int dd, uint16_t ogf, uint16_t ocf, uint8_t plen, void *param);
+int hci_reset_dev(int dd);
 int hci_send_req(int dd, struct hci_request *req, int timeout);
 
+int hci_send_cmd(int dd, uint16_t ogf, uint16_t ocf, uint8_t plen, void *param);
 int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype, uint16_t clkoffset, uint8_t rswitch, uint16_t *handle, int to);
 int hci_disconnect(int dd, uint16_t handle, uint8_t reason, int to);
 
@@ -157,6 +158,11 @@ int pal_strtover(char *str, unsigned int *ver);
 
 char *lmp_featurestostr(uint8_t *features, char *pref, int width);
 
+int hci_write_event_mask(int dd, uint8_t *mask, uint8_t len, int to);
+int hci_write_comon_cmd(int dd, uint16_t ogf, uint16_t ocf, 
+								uint32_t expect_event, uint8_t * cparam, uint32_t c_len, 
+								uint8_t *rparam, uint32_t r_len,
+								int timeout);
 static inline void hci_set_bit(int nr, void *addr)
 {
 	*((uint32_t *) addr + (nr >> 5)) |= (1 << (nr & 31));
