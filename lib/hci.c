@@ -1265,6 +1265,28 @@ done:
 	return 0;
 }
 
+int hci_reset_dev(int dd)
+{
+	struct hci_request rq;
+    uint8_t status;
+
+	memset(&rq, 0, sizeof(rq));
+	rq.ogf    = OGF_HOST_CTL;
+	rq.ocf    = OCF_RESET;
+	rq.rparam = &status;
+	rq.rlen   = 1;
+
+	if (hci_send_req(dd, &rq, 1000) < 0)  // default timeout is 1000
+		return -1;
+
+	if (status) {
+		errno = EIO;
+		return -1;
+	}
+
+	return 0;
+
+}
 int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype,
 				uint16_t clkoffset, uint8_t rswitch,
 				uint16_t *handle, int to)
@@ -3120,5 +3142,62 @@ int hci_le_read_remote_features(int dd, uint16_t handle, uint8_t *features, int 
 	if (features)
 		memcpy(features, rp.features, 8);
 
+	return 0;
+}
+
+int hci_write_event_mask(int dd, uint8_t *mask, uint8_t len, int to)
+{
+	evt_le_read_remote_used_features_complete rp;
+	le_read_remote_used_features_cp cp;
+	struct hci_request rq;
+
+	memset(&rq, 0, sizeof(rq));
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_EVENT_MASK;
+	rq.cparam = &mask;
+	rq.clen   = len;
+	rq.rparam = &rp;
+	rq.rlen = sizeof(rp);
+
+	if (hci_send_req(dd, &rq, to) < 0)
+		return -1;
+
+	if (rp.status) {
+		errno = EIO;
+		return -1;
+	}
+
+	return 0;
+}
+
+
+/* each hci command has it own ogf, ocf, return event, and input param, output param
+ * here define a command api try to handle*/
+int hci_write_comon_cmd(int dd, uint16_t ogf, uint16_t ocf, 
+								uint32_t expect_event, uint8_t * cparam, uint32_t c_len, 
+								uint8_t *rparam, uint32_t r_len,
+								int timeout)
+{
+
+	struct hci_request rq;
+
+	memset(&rq, 0, sizeof(rq));
+
+	rq.ogf    = ogf;
+	rq.ocf    = ocf;
+	rq.event  = expect_event;
+	rq.cparam = cparam;
+	rq.clen   = c_len;
+	rq.rparam = rparam;
+	rq.rlen   = r_len;
+
+	if (hci_send_req(dd, &rq, timeout) < 0)
+		return -1;
+
+	if (rparam && *rparam) {
+		errno = EIO;
+		return -1;
+	}
 	return 0;
 }
