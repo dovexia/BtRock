@@ -33,6 +33,7 @@
 #include "admin.h"
 #include "player.h"
 #include "leattrtest.h"
+#include "lehcicmdtest.h"
 
 /* String display constants */
 #define COLORED_NEW	COLOR_GREEN "NEW" COLOR_OFF
@@ -2902,6 +2903,11 @@ static void cmd_leattr_getleaddr(int argc, char *argv[])
     bt_shell_printf("cmd_leattr_getleaddr: return AA:BB:CC:DD:EE:FF\n");
 }
 
+void cmd_lehcicmd_getleaddr(int argc, char *argv[])
+{
+    bt_shell_printf("cmd_lehcicmd_getleaddr: return AA:BB:CC:DD:EE:FF\n");
+}
+
 static const struct bt_shell_menu advertise_menu = {
 	.name = "advertise",
 	.desc = "Advertise Options Submenu",
@@ -3172,6 +3178,7 @@ int main(int argc, char *argv[])
 	bt_shell_add_submenu(&advertise_menu);
 	bt_shell_add_submenu(&advertise_monitor_menu);
 	bt_shell_add_submenu(&leattr_menu);
+	bt_shell_add_submenu(&lehcicmd_menu);
 	bt_shell_add_submenu(&scan_menu);
 	bt_shell_add_submenu(&gatt_menu);
 	bt_shell_set_prompt(PROMPT_OFF);
