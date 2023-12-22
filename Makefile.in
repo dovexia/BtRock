@@ -982,21 +982,23 @@ attrib_gatttool_OBJECTS = $(am_attrib_gatttool_OBJECTS)
 am__client_bluetoothctl_SOURCES_DIST = client/main.c client/display.h \
 	client/display.c client/agent.h client/agent.c \
 	client/advertising.h client/advertising.c client/adv_monitor.h \
+	client/adv_monitor.c client/gatt.h client/gatt.c \
 	client/leattrtest.h client/leattrtest.c \
         client/lehcicmdtest.h client/lehcicmdtest.c \
-	client/adv_monitor.c client/gatt.h client/gatt.c \
+        client/msc.h client/msc.c \
 	client/admin.h client/admin.c client/player.h client/player.c
 @CLIENT_TRUE@am_client_bluetoothctl_OBJECTS = client/main.$(OBJEXT) \
 @CLIENT_TRUE@	client/display.$(OBJEXT) client/agent.$(OBJEXT) \
 @CLIENT_TRUE@	client/advertising.$(OBJEXT) \
 @CLIENT_TRUE@	client/leattrtest.$(OBJEXT) \
+@CLIENT_TRUE@	client/msc.$(OBJEXT) \
 @CLIENT_TRUE@	client/lehcicmdtest.$(OBJEXT) \
 @CLIENT_TRUE@	client/adv_monitor.$(OBJEXT) \
 @CLIENT_TRUE@	client/gatt.$(OBJEXT) client/admin.$(OBJEXT) \
 @CLIENT_TRUE@	client/player.$(OBJEXT)
 client_bluetoothctl_OBJECTS = $(am_client_bluetoothctl_OBJECTS)
 @CLIENT_TRUE@client_bluetoothctl_DEPENDENCIES =  \
-@CLIENT_TRUE@	gdbus/libgdbus-internal.la src/libshared-glib.la \
+@CLIENT_TRUE@	gdbus/libgdbus-internal.la lib/libbluetooth-internal.la src/libshared-glib.la \
 @CLIENT_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__emulator_b1ee_SOURCES_DIST = emulator/b1ee.c
 @TESTING_TRUE@am_emulator_b1ee_OBJECTS = emulator/b1ee.$(OBJEXT)
@@ -3597,6 +3599,8 @@ unit_tests = $(am__append_62) unit/test-tester unit/test-eir \
 @CLIENT_TRUE@					client/advertising.c \
 @CLIENT_TRUE@					client/leattrtest.h \
 @CLIENT_TRUE@					client/leattrtest.c \
+@CLIENT_TRUE@					client/msc.h \
+@CLIENT_TRUE@					client/msc.c \
 @CLIENT_TRUE@					client/lehcicmdtest.h \
 @CLIENT_TRUE@					client/lehcicmdtest.c \
 @CLIENT_TRUE@					client/adv_monitor.h \
@@ -3605,7 +3609,7 @@ unit_tests = $(am__append_62) unit/test-tester unit/test-eir \
 @CLIENT_TRUE@					client/admin.h client/admin.c \
 @CLIENT_TRUE@					client/player.h client/player.c
 
-@CLIENT_TRUE@client_bluetoothctl_LDADD = gdbus/libgdbus-internal.la src/libshared-glib.la \
+@CLIENT_TRUE@client_bluetoothctl_LDADD = gdbus/libgdbus-internal.la src/libshared-glib.la lib/libbluetooth-internal.la\
 @CLIENT_TRUE@				$(GLIB_LIBS) $(DBUS_LIBS) -lreadline
 
 @ZSH_COMPLETIONS_TRUE@zshcompletiondir = $(ZSH_COMPLETIONDIR)
@@ -5522,8 +5526,6 @@ client/main.$(OBJEXT): client/$(am__dirstamp) \
 client/agent.$(OBJEXT): client/$(am__dirstamp) \
 	client/$(DEPDIR)/$(am__dirstamp)
 client/advertising.$(OBJEXT): client/$(am__dirstamp) \
-	client/$(DEPDIR)/$(am__dirstamp)
-client/leattrtest.$(OBJEXT): client/$(am__dirstamp) \
 	client/$(DEPDIR)/$(am__dirstamp)
 client/adv_monitor.$(OBJEXT): client/$(am__dirstamp) \
 	client/$(DEPDIR)/$(am__dirstamp)
