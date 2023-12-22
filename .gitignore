@@ -109,6 +109,8 @@ tools/seq2bseq
 tools/smp-tester
 tools/test-runner
 tools/userchan-tester
+tools/ioctl-tester
+tools/mesh-tester
 
 
 *.la

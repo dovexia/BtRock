@@ -1472,8 +1472,16 @@ typedef struct {
 	uint8_t		max_pkt;
 } __attribute__ ((packed)) le_read_buffer_size_rp;
 #define LE_READ_BUFFER_SIZE_RP_SIZE 4
-#define OCF_LE_Read_Buffer_Size_v1              0x0002
-#define OCF_LE_Read_Buffer_Size_v2              0x0060
+#define OCF_LE_READ_BUFFER_SIZE_V1              0x0002
+#define OCF_LE_READ_BUFFER_SIZE_V2              0x0060
+typedef struct {
+    uint8_t	    status;
+    uint16_t    le_acl_data_packet_length;
+    uint8_t     total_num_le_acl_data_packets;
+    uint16_t    iso_data_packet_length;
+    uint8_t     total_num_iso_data_packets;
+} __attribute__ ((packed)) le_read_buffer_size_v2_rp;
+#define LE_READ_BUFFER_SIZE_V2_RP_SIZE 7
 
 #define OCF_LE_READ_LOCAL_SUPPORTED_FEATURES	0x0003
 typedef struct {
@@ -1565,20 +1573,25 @@ typedef struct {
 #define OCF_LE_CREATE_CONN_CANCEL		0x000E
 
 #define OCF_LE_READ_WHITE_LIST_SIZE		0x000F
+#define OCF_LE_READ_FILTER_ACCEPT_SIZE      0x000F
 typedef struct {
 	uint8_t		status;
 	uint8_t		size;
 } __attribute__ ((packed)) le_read_white_list_size_rp;
 #define LE_READ_WHITE_LIST_SIZE_RP_SIZE 2
 
+
 #define OCF_LE_CLEAR_WHITE_LIST			0x0010
+#define OCF_LE_CLEAR_FILTER_ACCEPT_LIST			0x0010
 
 #define OCF_LE_ADD_DEVICE_TO_WHITE_LIST		0x0011
+#define OCF_LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST		0x0011
 typedef struct {
 	uint8_t		bdaddr_type;
 	bdaddr_t	bdaddr;
 } __attribute__ ((packed)) le_add_device_to_white_list_cp;
 #define LE_ADD_DEVICE_TO_WHITE_LIST_CP_SIZE 7
+#define LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST_CP_SIZE 7
 
 #define OCF_LE_REMOVE_DEVICE_FROM_WHITE_LIST	0x0012
 typedef struct {
@@ -1682,15 +1695,31 @@ typedef struct {
 #define LE_READ_SUPPORTED_STATES_RP_SIZE 9
 
 #define OCF_LE_RECEIVER_TEST			0x001D
+#define OCF_LE_Receiver_Test_v1 0x001D
 typedef struct {
 	uint8_t		frequency;
 } __attribute__ ((packed)) le_receiver_test_cp;
 #define LE_RECEIVER_TEST_CP_SIZE 1
-#define OCF_LE_Receiver_Test_v3 0x004F
 #define OCF_LE_Receiver_Test_v2 0x0033
-#define OCF_LE_Receiver_Test_v1 0x001D
+typedef struct {
+	uint8_t		frequency;
+    uint8_t     phy;
+    uint8_t     modulation_index;
+} __attribute__ ((packed)) le_receiver_test_v2_cp;
+#define OCF_LE_Receiver_Test_v3 0x004F
+typedef struct {
+	uint8_t		frequency;
+    uint8_t     phy;
+    uint8_t     modulation_index;
+    uint8_t     expected_cte_length;
+    uint8_t     expected_cte_type;
+    uint8_t     slot_durations;
+    uint8_t     switching_pattern_length;
+    uint8_t     antenna_ids[0];  // expected_cte_length *1
+} __attribute__ ((packed)) le_receiver_test_v3_cp;
 
 #define OCF_LE_TRANSMITTER_TEST			0x001E
+#define OCF_LE_TRANSMITTER_TEST_V1 0x001E
 typedef struct {
 	uint8_t		frequency;
 	uint8_t		length;
@@ -1698,10 +1727,40 @@ typedef struct {
 } __attribute__ ((packed)) le_transmitter_test_cp;
 #define LE_TRANSMITTER_TEST_CP_SIZE 3
 
-#define OCF_LE_Transmitter_Test_v4 0x007B
-#define OCF_LE_Transmitter_Test_v3 0x0050
-#define OCF_LE_Transmitter_Test_v2 0x0034
-#define OCF_LE_Transmitter_Test_v1 0x001E
+#define OCF_LE_TRANSMITTER_TEST_V2 0x0034
+typedef struct {
+	uint8_t		frequency;
+	uint8_t		length;
+	uint8_t		payload;
+    uint8_t		phy;
+} __attribute__ ((packed)) le_transmitter_test_v2_cp;
+#define LE_TRANSMITTER_TEST_CP_SIZE_V2 3
+#define OCF_LE_TRANSMITTER_TEST_V3 0x0050
+typedef struct {
+	uint8_t		frequency;
+	uint8_t		length;
+	uint8_t		payload;
+    uint8_t		phy;
+    uint8_t     cte_length;
+    uint8_t     cte_type;
+    uint8_t     switching_pattern_length;
+    uint8_t     antenna_ids[0]; //switching_pattern_length × 1 octet
+} __attribute__ ((packed)) le_transmitter_test_v3_cp;
+#define LE_TRANSMITTER_TEST_CP_SIZE_V3
+#define OCF_LE_TRANSMITTER_TEST_V4 0x007B
+typedef struct {
+	uint8_t		frequency;
+	uint8_t		length;
+	uint8_t		payload;
+    uint8_t		phy;
+    uint8_t     cte_length;
+    uint8_t     cte_type;
+    uint8_t     switching_pattern_length;
+    uint8_t     antenna_ids[0]; //switching_pattern_length × 1 octet
+    uint8_t     tx_power_level;
+} __attribute__ ((packed)) le_transmitter_test_v4_cp;
+#define LE_TRANSMITTER_TEST_CP_SIZE_V4
+
 
 #define OCF_LE_TEST_END				0x001F
 typedef struct {
@@ -1711,13 +1770,73 @@ typedef struct {
 #define LE_TEST_END_RP_SIZE 3
 
 #define OCF_LE_REMOTE_CONNECTION_PARAMETER_REQUEST_REPLY 0x0020
-#define OCF_LE_Remote_Connection_Parameter_Request_Negative_Reply 0x0021
-#define OCF_LE_Set_Data_Length 0x0022
-#define OCF_LE_Read_Suggested_Default_Data_Length 0x0023
-#define OCF_LE_Write_Suggested_Default_Data_Length 0x0024
-#define OCF_LE_Read_Local_P_256_Public_Key 0x0025
-#define OCF_LE_Generate_DHKey_v1 0x0026
-#define OCF_LE_Generate_DHKey_v2 0x005E
+typedef struct {
+    uint16_t    connection_handle;
+    uint16_t    interval_min;
+    uint16_t    interval_max;
+    uint16_t    max_latency;
+    uint16_t    timeout;
+    uint16_t    min_ce_length;
+    uint16_t    max_ce_length;
+} __attribute__ ((packed)) le_remote_connection_parameter_request_reply_cp;
+#define LE_REMOTE_CONNECTION_PARAMETER_REQUEST_REPLY_CP_SIZE 14
+
+#define OCF_LE_REMOTE_CONNECTION_PARAMETER_REQUEST_NEGATIVE_REPLY 0x0021
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     reason;
+} __attribute__ ((packed)) ocf_le_remote_connection_parameter_request_negative_reply_cp;
+#define LE_REMOTE_CONNECTION_PARAMETER_REQUEST_REPLY_CP_SIZE 3
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) ocf_le_remote_connection_parameter_request_negative_reply_rp;
+#define LE_REMOTE_CONNECTION_PARAMETER_REQUEST_REPLY_RP_SIZE 3
+
+#define OCF_LE_SET_DATA_EENGTH 0x0022
+typedef struct {
+	uint16_t	conn_handle;
+	uint16_t	tx_octets;
+    uint16_t	tx_time;
+} __attribute__ ((packed)) le_set_data_length_cp;
+#define LE_SET_DATA_LENGTH_CP_SIZE 6
+
+typedef struct {
+	uint8_t		status;
+	uint16_t	conn_handle;
+} __attribute__ ((packed)) le_set_data_length_rp;
+#define LE_SET_DATA_LENGTH_RP_SIZE 3
+
+#define OCF_LE_READ_SUGGESTED_DEFAULT_DATA_LENGTH 0x0023
+typedef struct {
+	uint8_t		status;
+	uint16_t	suggest_max_tx_octets;
+    uint16_t	suggest_max_tx_time;
+} __attribute__ ((packed)) le_read_suggested_default_data_length_rp;
+#define LE_read_suggest_default_data_length_rp 5
+
+#define OCF_LE_WRITE_SUGGESTED_DEFAULT_DATA_LENGTH 0x0024
+typedef struct {
+	uint16_t	suggest_max_tx_octets;
+    uint16_t	suggest_max_tx_time;
+} __attribute__ ((packed)) le_write_suggest_default_data_length_cp;
+#define LE_WRITE_SUGGEST_DEFAULT_DATA_LENGTH_CP_SIZE 4
+
+#define OCF_LE_READ_LOCAL_P_256_PUBLIC_KEY 0x0025
+#define OCF_LE_GENERATE_DHKEY 0x0026
+#define OCF_LE_GENERATE_DHKEY_V1 0x0026
+typedef struct {
+	uint8_t	    key_x_coordinate[32];
+    uint8_t     key_y_coordinate[32];
+} __attribute__ ((packed)) le_generate_dhkey_v1_cp;
+#define LE_GENERATE_DHKEY_V1_SIZE  64
+#define OCF_LE_GENERATE_DHKEY_V2 0x005E
+typedef struct {
+	uint8_t	    key_x_coordinate[32];
+    uint8_t     key_y_coordinate[32];
+    uint8_t     key_type;
+} __attribute__ ((packed)) le_generate_dhkey_v2_cp;
+#define LE_GENERATE_DHKEY_V2_SIZE  65
 
 #define OCF_LE_ADD_DEVICE_TO_RESOLV_LIST	0x0027
 typedef struct {
@@ -1743,8 +1862,32 @@ typedef struct {
 	uint8_t		size;
 } __attribute__ ((packed)) le_read_resolv_list_size_rp;
 #define LE_READ_RESOLV_LIST_SIZE_RP_SIZE 2
-#define OCF_LE_Read_Peer_Resolvable_Address 0x002B
-#define OCF_LE_Read_Local_Resolvable_Address 0x002c
+#define OCF_LE_READ_PEER_RESOLVABLE_ADDRESS 0x002B
+typedef struct {
+	uint8_t		peer_identity_address_type;
+	bdaddr_t	peer_identity_address;
+} __attribute__ ((packed)) le_read_peer_resolvable_address_cp;
+#define LE_READ_PEER_RESOLVABLE_ADDRESS_CP_SIZE 7
+
+typedef struct {
+	uint8_t		status;
+	bdaddr_t	peer_resolvable_address;
+} __attribute__ ((packed)) le_read_peer_resolvable_address_rp;
+#define LE_READ_PEER_RESOLVABLE_ADDRESS_RP_SIZE 7
+
+#define OCF_LE_READ_LOCAL_RESOLVABLE_ADDRESS 0x002c
+typedef struct {
+	uint8_t		peer_identity_address_type;
+	bdaddr_t	peer_identity_address;
+} __attribute__ ((packed)) le_read_local_resolvable_address_cp;
+#define LE_READ_LOCAL_RESOLVABLE_ADDRESS_CP_SIZE 7
+
+typedef struct {
+	uint8_t		status;
+	bdaddr_t	local_resolvable_address;
+} __attribute__ ((packed)) le_read_local_resolvable_address_rp;
+#define LE_READ_LOCAL_RESOLVABLE_ADDRESS_RP_SIZE 7
+
 
 #define OCF_LE_SET_ADDRESS_RESOLUTION_ENABLE	0x002D
 typedef struct {
@@ -1753,88 +1896,935 @@ typedef struct {
 #define LE_SET_ADDRESS_RESOLUTION_ENABLE_CP_SIZE 1
 
 
-#define OCF_LE_Set_Resolvable_Private_Address_Timeout 002E
-#define OCF_LE_Read_Maximum_Data_Length 0x002F
-#define OCF_LE_Read_PHY 0x0030
-#define OCF_LE_Set_Default_PHY 0x0031
-#define OCF_LE_Set_PHY 0x0032
-#define OCF_LE_Set_Advertising_Set_Random_Address 0x0035
-#define OCF_LE_Set_Extended_Advertising_Parameters 0x0036
-#define OCF_LE_Set_Extended_Advertising_Parameters_v1 0x0036
-#define OCF_LE_Set_Extended_Advertising_Parameters_v2 0x007F
-#define OCF_LE_Set_Extended_Advertising_Data 0x0037
-#define OCF_LE_Set_Extended_Scan_Response_Data 0x0038
-#define OCF_LE_Set_Extended_Advertising_Enable 0x0039
-#define OCF_LE_Read_Maximum_Advertising_Data_Length 0x003A
-#define OCF_LE_Read_Number_of_Supported_Advertising_Sets 0x003B
-#define OCF_LE_Remove_Advertising_Set 0x003C
-#define OCF_LE_Clear_Advertising_Sets 0x003D
-#define OCF_LE_Set_Periodic_Advertising_Parameters 0x003E
-#define OCF_LE_Set_Periodic_Advertising_Parameters_v1 0x003E
-#define OCF_LE_Set_Periodic_Advertising_Parameters_v2 0x0086
-#define OCF_LE_Set_Periodic_Advertising_Data 0x003F
-#define OCF_LE_Set_Periodic_Advertising_Enable 0x0040
-#define OCF_LE_Set_Extended_Scan_Parameters 0x0041
-#define OCF_LE_Set_Extended_Scan_Enable 0x0042
-#define OCF_LE_Extended_Create_Connection_v1 0x0043
-#define OCF_LE_Extended_Create_Connection_v2 0x85
-#define OCF_LE_Periodic_Advertising_Create_Sync 0x0044
-#define OCF_LE_Periodic_Advertising_Create_Sync_Cancel 0x0045
-#define OCF_LE_Periodic_Advertising_Terminate_Sync 0x0046
-#define OCF_LE_Add_Device_To_Periodic_Advertiser_List 0x0047
-#define OCF_LE_Remove_Device_From_Periodic_Advertiser_List 0x0048
-#define OCF_LE_Clear_Periodic_Advertiser_List 0x0049
-#define OCF_LE_Read_Periodic_Advertiser_List_Size 0x004A
-#define OCF_LE_Read_Transmit_Power 0x004B
-#define OCF_LE_Read_RF_Path_Compensation 0x004C
-#define OCF_LE_Write_RF_Path_Compensation 0x004D
-#define OCF_LE_Set_Privacy_Mode 0x004E
-#define OCF_LE_Set_Connectionless_CTE_Transmit_Parameters 0x0051
-#define OCF_LE_Set_Connectionless_CTE_Transmit_Enable 0x0052
-#define OCF_LE_Set_Connectionless_IQ_Sampling_Enable 0x0053
-#define OCF_LE_Set_Connection_CTE_Receive_Parameters 0x0054
-#define OCF_LE_Set_Connection_CTE_Transmit_Parameters 0x0055
-#define OCF_LE_Connection_CTE_Request_Enable 0x0056
-#define OCF_LE_Connection_CTE_Response_Enable 0x0057
-#define OCF_LE_Read_Antenna_Information 0x0058
-#define OCF_LE_Set_Periodic_Advertising_Receive_Enable 0x0059
-#define OCF_LE_Periodic_Advertising_Sync_Transfer 0x005A
-#define OCF_LE_Periodic_Advertising_Set_Info_Transfer 0x005B
-#define OCF_LE_Set_Periodic_Advertising_Sync_Transfer_Parameters 0x005C
-#define OCF_LE_Set_Default_Periodic_Advertising_Sync_Transfer_Parameters 0x005D
-#define OCF_LE_Modify_Sleep_Clock_Accuracy 0x005F
-#define OCF_LE_Read_ISO_TX_Sync 0x0061
-#define OCF_LE_Set_CIG_Parameters 0x0062
-#define OCF_LE_Set_CIG_Parameters_Test 0x0063
-#define OCF_LE_Create_CIS 0x0064
-#define OCF_LE_Remove_CIG 0x0065
-#define OCF_LE_Accept_CIS_Request 0x0066
-#define OCF_LE_Reject_CIS_Request 0x0067
-#define OCF_LE_Create_BIG 0x0068
-#define OCF_LE_Create_BIG_Test 0x0069
-#define OCF_LE_Terminate_BIG 0x006A
-#define OCF_LE_BIG_Create_Sync 0x006B
-#define OCF_LE_BIG_Terminate_Sync 0x006C
-#define OCF_LE_Request_Peer_SCA 0x006D
-#define OCF_LE_Setup_ISO_Data_Path 0x006E
-#define OCF_LE_Remove_ISO_Data_Path 0x006F
-#define OCF_LE_ISO_Transmit_Test 0x0070
-#define OCF_LE_ISO_Receive_Test 0x0071
-#define OCF_LE_ISO_Read_Test_Counters 0x0072
-#define OCF_LE_ISO_Test_End 0x0073
-#define OCF_LE_Set_Host_Feature 0x0074
-#define OCF_LE_Read_ISO_Link_Quality 0x0075
-#define OCF_LE_Enhanced_Read_Transmit_Power_Level 0x0076
-#define OCF_LE_Read_Remote_Transmit_Power_Level 0x0077
-#define OCF_LE_Set_Path_Loss_Reporting_Parameters 0x0078
-#define OCF_LE_Set_Path_Loss_Reporting_Enable 0x0079
-#define OCF_LE_Set_Transmit_Power_Reporting_Enable 0x007A
-#define OCF_LE_Set_Data_Related_Address_Changes 0x007C
-#define OCF_LE_Set_Default_Subrate 0x007D
-#define OCF_LE_Subrate_Request 0x007E
-#define OCF_LE_Set_Periodic_Advertising_Subevent_Data 0x82
-#define OCF_LE_Set_Periodic_Advertising_Response_Data 0x83
-#define OCF_LE_Set_Periodic_Sync_Subevent 0x84
+#define OCF_LE_SET_RESOLVABLE_PRIVATE_ADDRESS_TIMEOUT 002E
+typedef struct {
+	uint8_t		rpa_timeout;
+} __attribute__ ((packed)) le_set_resolvable_private_address_timeout_cp;
+#define LE_SET_RESOLVABLE_PRIVATE_ADDRESS_TIMEOUT_CP_SIZE 1
+
+#define OCF_LE_READ_MAXIMUM_DATA_LENGTH 0x002F
+typedef struct {
+    uint8_t     status;
+    uint16_t    supported_max_tx_octets;
+    uint16_t    supported_max_tx_time;
+    uint16_t    supported_max_rx_octets;
+    uint16_t    supported_max_rx_tim;
+} __attribute__ ((packed)) le_read_maximum_data_length_rp;
+#define LE_READ_MAXIMUM_DATA_LENGTH_RP_SIZE 9
+
+#define OCF_LE_READ_PHY 0x0030
+typedef struct {
+    uint8_t     status;
+    uint16_t    Connection_Handle;
+} __attribute__ ((packed)) le_read_phy_cp;
+#define LE_READ_PHY_CP_SIZE 3
+
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+    uint8_t     tx_phy;
+    uint8_t     rx_ph;
+} __attribute__ ((packed)) le_read_phy_rp;
+#define LE_READ_PHY_RP_SIZE 5
+
+#define OCF_LE_SET_DEFAULT_PHY 0x0031
+typedef struct {
+    uint8_t     status;
+    uint8_t     tx_phy;
+    uint8_t     rx_ph;
+} __attribute__ ((packed)) le_set_default_phy_cp;
+#define LE_SET_DEFAULT_PHY_SIZE 3
+
+#define OCF_LE_SET_PHY 0x0032
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     all_phys;
+    uint8_t     tx_phys;
+    uint8_t     rx_phys;
+    uint16_t     phy_options;
+} __attribute__ ((packed)) le_set_phy_cp;
+#define LE_SET_PHY_CP_SIZE 7
+
+#define OCF_LE_SET_ADVERTISING_SET_RANDOM_ADDRESS 0x0035
+typedef struct {
+    uint8_t    Advertising_Handle;
+    bdaddr_t     Random_Address;
+} __attribute__ ((packed)) le_set_advertising_set_random_address_cp;
+#define LE_SET_ADVERTISING_SET_RANDOM_ADDRESS_CP_SIZE  7
+
+#define OCF_LE_SET_EXTENDED_ADVERTISING_PARAMETERS 0x0036
+#define OCF_LE_SET_EXTENDED_ADVERTISING_PARAMETERS_V1 0x0036
+typedef struct {
+    uint8_t     advertising_handle;
+    uint16_t    advertising_event_properties;
+    uint8_t     primary_advertising_interval_min[3];
+    uint8_t     primary_advertising_interval_max[3];
+    uint8_t     primary_advertising_channel_map;
+    uint8_t     own_address_type;
+    uint8_t     peer_address_type;
+    bdaddr_t    peer_address;
+    uint8_t     advertising_filter_policy;
+    uint8_t     advertising_tx_power;
+    uint8_t     primary_advertising_phy;
+    uint8_t     secondary_advertising_max_skip;
+    uint8_t     secondary_advertising_phy;
+    uint8_t     advertising_sid;
+    uint8_t     scan_request_notification_enable;
+} __attribute__ ((packed)) le_set_extended_advertising_parameters_v1_cp;
+#define LE_SET_EXTENDED_ADVERTISING_PARAMETERS_V1_CP_SIZE 25
+
+#define OCF_LE_SET_EXTENDED_ADVERTISING_PARAMETERS_V2 0x007F
+typedef struct {
+    uint8_t     advertising_handle;
+    uint16_t    advertising_event_properties;
+    uint8_t     primary_advertising_interval_min[3];
+    uint8_t     primary_advertising_interval_max[3];
+    uint8_t     primary_advertising_channel_map;
+    uint8_t     own_address_type;
+    uint8_t     peer_address_type;
+    bdaddr_t    peer_address;
+    uint8_t     advertising_filter_policy;
+    uint8_t     advertising_tx_power;
+    uint8_t     primary_advertising_phy;
+    uint8_t     secondary_advertising_max_skip;
+    uint8_t     secondary_advertising_phy;
+    uint8_t     advertising_sid;
+    uint8_t     scan_request_notification_enable;
+    uint8_t     primary_advertising_phy_options;
+    uint8_t     secondary_advertising_phy_options;
+} __attribute__ ((packed)) le_set_extended_advertising_parameters_v2_cp;
+#define LE_SET_EXTENDED_ADVERTISING_PARAMETERS_V2_CP_SIZE 27
+
+#define OCF_LE_SET_EXTENDED_ADVERTISING_DATA 0x0037
+typedef struct {
+    uint8_t     advertising_handle;
+    uint8_t     operation;
+    uint8_t     fragment_preference;
+    uint8_t     advertising_data_length;
+    uint8_t     advertising_data[0];
+} __attribute__ ((packed)) le_set_extended_advertising_data_cp;
+#define LE_SET_EXTENDED_ADVERTISING_DATA_CP_SIZE 5
+
+#define OCF_LE_SET_EXTENDED_SCAN_RESPONSE_DATA 0x0038
+typedef struct {
+    uint8_t     advertising_handle;
+    uint8_t     operation;
+    uint8_t     fragment_preference;
+    uint8_t     scan_response_data_length;
+    uint8_t     scan_response_data;
+} __attribute__ ((packed)) le_set_extended_scan_response_data_cp;
+#define LE_SET_EXTENDED_SCAN_RESPONSE_DATA_CP_SIZE 5
+
+#define ocf_le_set_extended_advertising_enable 0x0039
+typedef struct {
+    uint8_t     Enable;
+    uint8_t     Num_Sets;
+    uint8_t     Advertising_Handle[1];  // Num_Sets *1
+    uint16_t    Duration[1];    // Num_Sets *1
+    uint8_t     Max_Extended_Advertising_Events[0];     // Num_Sets *1
+} __attribute__ ((packed)) le_set_extended_advertising_enable_cp;
+#define LE_SET_EXTENDED_ADVERTISING_ENABLE_CP_SIZE 6
+
+#define OCF_LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH 0x003A
+typedef struct {
+    uint8_t     status;
+    uint16_t     max_advertising_data_length;
+} __attribute__ ((packed)) le_read_maximum_advertising_data_length_rp;
+#define LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH_RP_SIZE 7
+
+#define OCF_LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS 0x003B
+typedef struct {
+    uint8_t     status;
+    uint8_t     num_supported_advertising_sets;
+} __attribute__ ((packed)) le_read_number_of_supported_advertising_sets_rp;
+#define LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS_RP_SIZE 2
+
+#define OCF_LE_REMOVE_ADVERTISING_SET 0x003C
+typedef struct {
+    uint8_t     advertising_handle;
+} __attribute__ ((packed)) le_remove_advertising_set_cp;
+#define LE_REMOVE_ADVERTISING_SET_CP_SIZE 1
+
+#define OCF_LE_CLEAR_ADVERTISING_SETS 0x003D
+
+#define OCF_LE_SET_PERIODIC_ADVERTISING_PARAMETERS 0x003E
+#define OCF_LE_SET_PERIODIC_ADVERTISING_PARAMETERS_V1 0x003E
+typedef struct {
+    uint8_t     advertising_handle;
+    uint16_t    periodic_advertising_interval_min;
+    uint16_t    periodic_advertising_interval_max;
+    uint16_t    periodic_advertising_properties;
+} __attribute__ ((packed)) le_set_periodic_advertising_parameters_v1_cp;
+#define LE_SET_PERIODIC_ADVERTISING_PARAMETERS_V1_CP_SIZE 7
+
+#define OCF_LE_SET_PERIODIC_ADVERTISING_PARAMETERS_V2 0x0086
+typedef struct {
+    uint8_t     advertising_handle;
+    uint16_t    periodic_advertising_interval_min;
+    uint16_t    periodic_advertising_interval_max;
+    uint16_t    periodic_advertising_properties;
+    uint8_t     num_subevents;
+    uint8_t     subevent_interval;
+    uint8_t     response_slot_delay;
+    uint8_t     response_slot_spacing;
+    uint8_t     num_response_slots;
+} __attribute__ ((packed)) le_set_periodic_advertising_parameters_v2_cp;
+#define LE_SET_PERIODIC_ADVERTISING_PARAMETERS_V2_CP_SIZE   12
+
+#define OCF_LE_SET_PERIODIC_ADVERTISING_DATA 0x003F
+typedef struct {
+    uint8_t     advertising_handle;
+    uint8_t     operation;
+    uint8_t     advertising_data_length;
+    uint8_t     advertising_data;
+} __attribute__ ((packed)) le_set_periodic_advertising_data_cp;
+#define LE_SET_PERIODIC_ADVERTISING_DATA_CP_SIZE   4
+
+#define OCF_LE_SET_PERIODIC_ADVERTISING_ENABLE 0x0040
+typedef struct {
+    uint8_t     enable;
+    uint8_t     advertising_handle;
+} __attribute__ ((packed)) le_set_periodic_advertising_enable_cp;
+#define LE_SET_PERIODIC_ADVERTISING_ENABLE_CP_SIZE   2
+
+#define OCF_LE_SET_EXTENDED_SCAN_PARAMETERS 0x0041
+typedef struct {
+    uint8_t     own_address_type;
+    uint8_t     scanning_filter_policy;
+    uint8_t     scanning_phys;
+    uint8_t     scan_type[1];
+    uint16_t    scan_interval[1];
+    uint16_t    scan_window[1];
+} __attribute__ ((packed)) le_set_extended_scan_parameters_cp;
+#define LE_SET_EXTENDED_SCAN_PARAMETERS_CP_SIZE 8
+
+#define OCF_LE_SET_EXTENDED_SCAN_ENABLE 0x0042
+typedef struct {
+    uint8_t     enable;
+    uint8_t     filter_duplicates;
+    uint16_t    duration;
+    uint16_t    period;
+} __attribute__ ((packed)) le_set_extended_scan_enable_cp;
+#define LE_SET_EXTENDED_SCAN_ENABLE_CP_SIZE 6
+
+#define OCF_LE_EXTENDED_CREATE_CONNECTION_V1 0x0043
+typedef struct {
+    uint8_t     initiator_filter_policy;
+    uint8_t     own_address_type;
+    uint8_t     peer_address_type;
+    bdaddr_t    peer_address;
+    uint8_t     initiating_phys;
+    uint16_t    scan_interval[1];
+    uint16_t    scan_window[1];
+    uint16_t    connection_interval_min[1];
+    uint16_t    connection_interval_max[1];
+    uint16_t    max_latency[7];
+    uint16_t    supervision_timeout[1];
+    uint16_t    min_ce_length[1];
+    uint16_t    max_ce_length[1];
+} __attribute__ ((packed)) le_set_extended_scan_enable_v1_cp;
+#define LE_SET_EXTENDED_SCAN_ENABLE_V1_CP_SIZE 38
+
+#define OCF_LE_EXTENDED_CREATE_CONNECTION_V2 0x85
+typedef struct {
+    uint8_t     advertising_handle;
+    uint8_t     subevent;
+    uint8_t     peer_address_type;
+    bdaddr_t    peer_address;
+    uint8_t     initiating_phys;
+    uint16_t    scan_interval[1];
+    uint16_t    scan_window[1];
+    uint16_t    connection_interval_min[1];
+    uint16_t    connection_interval_max[1];
+    uint16_t    max_latency[7];
+    uint16_t    supervision_timeout[1];
+    uint16_t    min_ce_length[1];
+    uint16_t    max_ce_length[1];
+} __attribute__ ((packed)) le_set_extended_scan_enable_v2s_cp;
+#define LE_SET_EXTENDED_SCAN_ENABLE_V1_CP2_SIZE 38
+
+#define OCF_LE_PERIODIC_ADVERTISING_CREATE_SYNC 0x0044
+typedef struct {
+    uint8_t     options;
+    uint8_t     advertising_sid;
+    uint8_t     advertiser_address_type;
+    bdaddr_t    advertiser_address;
+    uint16_t    skip;
+    uint16_t    sync_timeout;
+    uint8_t     sync_cte_type;
+} __attribute__ ((packed)) le_periodic_advertising_create_sync_cp;
+#define LE_PERIODIC_ADVERTISING_CREATE_SYNC_CP_SIZE 14
+
+
+#define OCF_LE_PERIODIC_ADVERTISING_CREATE_SYNC_CANCEL 0x0045
+
+#define OCF_LE_PERIODIC_ADVERTISING_TERMINATE_SYNC 0x0046
+typedef struct {
+    uint16_t    sync_handle;
+} __attribute__ ((packed)) le_periodic_advertising_terminate_sync_cp;
+#define LE_PERIODIC_ADVERTISING_TERMINATE_SYNC_CP_SIZE 2
+
+
+#define OCF_LE_ADD_DEVICE_TO_PERIODIC_ADVERTISER_LIST 0x0047
+typedef struct {
+	uint8_t		advertiser_address_type;
+    bdaddr_t    advertiser_address;
+    uint8_t     advertising_sid;
+} __attribute__ ((packed)) le_add_device_to_periodic_advertiser_list_cp;
+#define LE_ADD_DEVICE_TO_PERIODIC_ADVERTISER_LIST_CP_SIZE 8
+
+#define OCF_LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISER_LIST 0x0048
+typedef struct {
+	uint8_t		advertiser_address_type;
+    bdaddr_t    advertiser_address;
+    uint8_t     advertising_sid;
+} __attribute__ ((packed)) le_remove_device_from_periodic_advertiser_list_cp;
+#define LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISER_LIST_CP_SIZE 8
+
+#define OCF_LE_CLEAR_PERIODIC_ADVERTISER_LIST 0x0049
+#define OCF_LE_READ_PERIODIC_ADVERTISER_LIST_SIZE 0x004A
+typedef struct {
+	uint8_t		status;
+	uint8_t		periodic_advertiser_list_size;
+} __attribute__ ((packed)) le_read_periodic_advertiser_list_size_rp;
+#define LE_READ_PERIODIC_ADVERTISER_LIST_SIZE_RP_SIZE 2
+
+#define OCF_LE_READ_TRANSMIT_POWER 0x004B
+typedef struct {
+	uint8_t		status;
+	uint8_t		min_tx_power;
+    uint8_t     max_tx_power;
+} __attribute__ ((packed)) LE_READ_TRANSMIT_POWER_rp;
+#define LE_READ_TRANSMIT_POWER_RP_SIZE 3
+
+
+#define OCF_LE_READ_RF_PATH_COMPENSATION 0x004C
+typedef struct {
+	uint8_t		status;
+	uint16_t		RF_TX_Path_Compensation_Value;
+    uint16_t     RF_RX_Path_Compensation_Value;
+} __attribute__ ((packed)) LE_READ_RF_PATH_COMPENSATION_rp;
+#define LE_READ_RF_PATH_COMPENSATION_RP_SIZE 5
+
+#define OCF_LE_WRITE_RF_PATH_COMPENSATION 0x004D
+typedef struct {
+	uint16_t	RF_TX_Path_Compensation_Value;
+    uint16_t    RF_RX_Path_Compensation_Value;
+} __attribute__ ((packed)) le_write_rf_path_compensation_cp;
+#define LE_WRITE_RF_PATH_COMPENSATION_CP  4
+
+#define OCF_LE_SET_PRIVACY_MODE 0x004E
+typedef struct {
+    uint8_t     peer_identity_address_type;
+    bdaddr_t    peer_identity_address;
+    uint8_t     privacy_mode;
+} __attribute__ ((packed)) ocf_le_set_privacy_mode_cp;
+#define LE_SET_PRIVACY_MODE_CP_SIZE 8
+
+#define OCF_LE_SET_CONNECTIONLESS_CTE_TRANSMIT_PARAMETERS 0x0051
+typedef struct {
+    uint8_t     advertising_handle;
+    uint8_t     cte_length;
+    uint8_t     cte_type;
+    uint8_t     cte_count;
+    uint8_t     switching_pattern_length ;
+    uint8_t     antenna_ids[1];
+} __attribute__ ((packed)) set_connectionless_cte_transmit_parameters_cp;
+#define LE_SET_CONNECTIONLESS_CTE_TRANSMIT_PARAMETERS_CP_SIZE 6
+
+#define OCF_LE_SET_CONNECTIONLESS_CTE_TRANSMIT_ENABLE 0x0052
+typedef struct {
+    uint8_t     advertising_handle;
+    uint8_t     cte_enable;
+} __attribute__ ((packed)) le_set_connectionless_cte_transmit_enable_cp;
+#define LE_SET_CONNECTIONLESS_CTE_TRANSMIT_ENABLE_CP_SIZE 2
+
+#define OCF_LE_SET_CONNECTIONLESS_IQ_SAMPLING_ENABLE 0x0053
+typedef struct {
+    uint16_t     sync_handle;
+    uint8_t     sampling_enable;
+    uint8_t     slot_durations;
+    uint8_t     max_sampled_ctes;
+    uint8_t     switching_pattern_length;
+    uint8_t     antenna_ids[1];
+} __attribute__ ((packed)) le_set_connectionless_iq_sampling_enable_cp;
+#define LE_SET_CONNECTIONLESS_IQ_SAMPLING_ENABLE_CP_SIZE 7
+typedef struct {
+    uint8_t     status;
+    uint16_t     sync_handle;
+} __attribute__ ((packed)) le_set_connectionless_iq_sampling_enable_rp;
+#define LE_SET_CONNECTIONLESS_IQ_SAMPLING_ENABLE_RP_SIZE 3
+
+
+#define OCF_LE_SET_CONNECTION_CTE_RECEIVE_PARAMETERS 0x0054
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     sampling_enable;
+    uint8_t     slot_durations;
+    uint8_t     switching_pattern_length;
+    uint8_t     antenna_ids[1];
+} __attribute__ ((packed)) le_set_connection_cte_receive_parameters_cp;
+#define LE_SET_CONNECTION_CTE_RECEIVE_PARAMETERS_CP_SIZE 6
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_set_connection_cte_receive_parameters_rp;
+#define LE_SET_CONNECTION_CTE_RECEIVE_PARAMETERS_RP_SIZE 3
+
+
+#define OCF_LE_SET_CONNECTION_CTE_TRANSMIT_PARAMETERS 0x0055
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     cte_types;
+    uint8_t     switching_pattern_length;
+    uint8_t     antenna_ids[1];
+} __attribute__ ((packed)) le_set_connection_cte_transmit_parameters_cp;
+#define LE_SET_CONNECTION_CTE_TRANSMIT_PARAMETERS_CP_SIZE 5
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_set_connection_cte_transmit_parameters_rp;
+#define LE_SET_CONNECTION_CTE_TRANSMIT_PARAMETERS_RP_SIZE 3
+
+#define OCF_LE_CONNECTION_CTE_REQUEST_ENABLE 0x0056
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     enable;
+    uint16_t    cte_request_interval;
+    uint8_t     requested_cte_length;
+    uint8_t     requested_cte_type;
+} __attribute__ ((packed)) le_connection_cte_request_enable_cp;
+#define LE_CONNECTION_CTE_REQUEST_ENABLE_CP_SIZE 7
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_connection_cte_request_enable_rp;
+#define LE_CONNECTION_CTE_REQUEST_ENABLE_RP_SIZE 3
+
+
+#define OCF_LE_CONNECTION_CTE_RESPONSE_ENABLE 0x0057
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     enable;
+} __attribute__ ((packed)) le_connection_cte_response_enable_cp;
+#define LE_CONNECTION_CTE_RESPONSE_ENABLE_CP_SIZE 3
+
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_connection_cte_response_enable_rp;
+#define LE_CONNECTION_CTE_RESPONSE_ENABLE_RP_SIZE 3
+
+#define OCF_LE_READ_ANTENNA_INFORMATION 0x0058
+typedef struct {
+    uint8_t     status;
+    uint8_t     supported_switching_sampling_rates;
+    uint8_t     num_antennae;
+    uint8_t     max_switching_pattern_length;
+    uint8_t     max_cte_lengt;
+} __attribute__ ((packed)) le_read_antenna_information_rp;
+#define LE_READ_ANTENNA_INFORMATION_RP_SIZE 5
+
+#define OCF_LE_SET_PERIODIC_ADVERTISING_RECEIVE_ENABLE 0x0059
+typedef struct {
+    uint16_t    sync_handle;
+    uint8_t     enable;
+} __attribute__ ((packed)) le_set_periodic_advertising_receive_enable_cp;
+#define LE_SET_PERIODIC_ADVERTISING_RECEIVE_ENABLE_CP_SIZE 3
+
+#define OCF_LE_PERIODIC_ADVERTISING_SYNC_TRANSFER 0x005A
+typedef struct {
+    uint16_t    connection_handle;
+    uint16_t    service_data;
+    uint16_t    sync_handle;
+} __attribute__ ((packed)) le_periodic_advertising_sync_transfer_cp;
+#define LE_PERIODIC_ADVERTISING_SYNC_TRANSFER_CP_SIZE 6
+typedef struct {
+    uint8_t    status;
+    uint16_t   connection_handle;
+} __attribute__ ((packed)) le_periodic_advertising_sync_transfer_rp;
+#define LE_PERIODIC_ADVERTISING_SYNC_TRANSFER_RP_SIZE 3
+
+#define OCF_LE_PERIODIC_ADVERTISING_SET_INFO_TRANSFER 0x005B
+typedef struct {
+    uint16_t    connection_handle;
+    uint16_t    service_data;
+    uint8_t     advertising_handle;
+} __attribute__ ((packed)) le_periodic_advertising_set_info_transfer_cp;
+#define LE_PERIODIC_ADVERTISING_SET_INFO_TRANSFER_CP_SIZE 5
+typedef struct {
+    uint8_t    status;
+    uint16_t   connection_handle;
+} __attribute__ ((packed)) le_periodic_advertising_set_info_transfer_rp;
+#define LE_PERIODIC_ADVERTISING_SET_INFO_TRANSFER_RP_SIZE 3
+
+#define OCF_LE_SET_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS 0x005C
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     mode;
+    uint16_t    skip;
+    uint16_t    sync_timeout;
+    uint8_t     cte_type;
+} __attribute__ ((packed)) le_set_periodic_advertising_sync_transfer_parameters_cp;
+#define LE_SET_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS_CP_SIZE 8
+typedef struct {
+    uint8_t    status;
+    uint16_t   connection_handle;
+} __attribute__ ((packed)) le_set_periodic_advertising_sync_transfer_parameters_rp;
+#define LE_SET_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS_RP_SIZE 3
+
+#define OCF_LE_SET_DEFAULT_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS 0x005D
+typedef struct {
+    uint8_t     mode;
+    uint16_t    skip;
+    uint16_t    sync_timeout;
+    uint8_t     cte_type;
+} __attribute__ ((packed)) le_set_default_periodic_advertising_sync_transfer_parameters_cp;
+#define LE_SET_DEFAULT_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS_CP_SIZE 6
+
+
+#define OCF_LE_MODIFY_SLEEP_CLOCK_ACCURACY 0x005F
+typedef struct {
+    uint8_t     action;
+} __attribute__ ((packed)) le_modify_sleep_clock_accuracy_cp;
+#define LE_MODIFY_SLEEP_CLOCK_ACCURACY_CP_SIZE 1
+
+#define OCF_LE_READ_ISO_TX_SYNC 0x0061
+typedef struct {
+    uint16_t     connection_handle;
+} __attribute__ ((packed)) le_read_iso_tx_sync_cp;
+#define LE_READ_ISO_TX_SYNC_CP_SIZE 2
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+    uint16_t    packet_sequence_number;
+    uint32_t    tx_time_stamp;
+    uint32_t    time_offset;  //in protocol definition, the value is 3 octets, need investigate.
+} __attribute__ ((packed)) le_read_iso_tx_sync_rp;
+#define LE_READ_ISO_TX_SYNC_RP_SIZE 13
+
+#define OCF_LE_SET_CIG_PARAMETERS 0x0062
+typedef struct {
+    uint8_t     cig_id;
+    uint8_t     sdu_interval_c_to_p[3];
+    uint8_t     sdu_interval_p_to_c[3];
+    uint8_t     worst_case_sca;
+    uint8_t     packing;
+    uint8_t     framing;
+    uint16_t    max_transport_latency_c_to_p;
+    uint16_t    max_transport_latency_p_to_c;
+    uint8_t     cis_count;
+    uint8_t     cis_id[1];
+    uint8_t     max_sdu_c_to_p[1];
+    uint8_t     max_sdu_p_to_c[1];
+    uint8_t     phy_c_to_p[1];
+    uint8_t     phy_p_to_c[1];
+    uint8_t     rtn_c_to_p[1];
+    uint8_t     rtn_p_to_c[1];
+} __attribute__ ((packed)) le_set_cig_parameters_cp;
+#define LE_SET_CIG_PARAMETERS_CP_SIZE 22
+typedef struct {
+    uint8_t     status;
+    uint8_t     cig_id;
+    uint8_t     cis_count;
+    uint16_t    connection_handle[1];
+} __attribute__ ((packed)) le_set_cig_parameters_rp;
+#define LE_SET_CIG_PARAMETERS_RP_SIZE 5
+
+#define OCF_LE_SET_CIG_PARAMETERS_TEST 0x0063
+typedef struct {
+    uint8_t     cig_id;
+    uint8_t     sdu_interval_c_to_p[3];
+    uint8_t     sdu_interval_p_to_c[3];
+    uint8_t     ft_c_to_p;
+    uint8_t     ft_p_to_c;
+    uint16_t    iso_interval;
+    uint8_t     worst_case_sca;
+    uint8_t     packing;
+    uint8_t     framing;
+    uint8_t     cis_count;
+    uint8_t     cis_id[1];
+    uint8_t     nse[1];
+    uint16_t    max_sdu_c_to_p[1];
+    uint16_t    max_sdu_p_to_c[1];
+    uint16_t    max_pdu_c_to_p[1];
+    uint16_t    max_pdu_p_to_c[1];
+    uint8_t     phy_c_to_p[1];
+    uint8_t     phy_p_to_c[1];
+    uint8_t     bn_c_to_p[1];
+    uint8_t     bn_p_to_c[1];
+} __attribute__ ((packed)) le_set_cig_parameters_test_cp;
+#define LE_SET_CIG_PARAMETERS_TEST_CP_SIZE 29
+typedef struct {
+    uint8_t     status;
+    uint8_t     cig_id;
+    uint8_t     cis_count;
+    uint16_t    connection_handle[1];
+} __attribute__ ((packed)) le_set_cig_parameters_test_rp;
+#define LE_SET_CIG_PARAMETERS_TEST_RP_SIZE 7
+
+#define OCF_LE_CREATE_CIS 0x0064
+typedef struct {
+    uint8_t     cis_count;
+    uint16_t    cis_connection_handle[1];
+    uint16_t    acl_connection_handle[1];
+} __attribute__ ((packed)) le_create_cis_cp;
+#define LE_CREATE_CIS_CP_SIZE 5
+
+#define OCF_LE_REMOVE_CIG 0x0065
+typedef struct {
+    uint8_t     cig_id;
+} __attribute__ ((packed)) ocf_le_remove_cig_cp;
+#define OCF_LE_REMOVE_CIG_CP_SIZE 1
+
+typedef struct {
+    uint8_t     status;
+    uint8_t     cig_id;
+} __attribute__ ((packed)) ocf_le_remove_cig_rp;
+#define OCF_LE_REMOVE_CIG_RP_SIZE 2
+
+#define OCF_LE_ACCEPT_CIS_REQUEST 0x0066
+typedef struct {
+    uint16_t     connection_handle;
+} __attribute__ ((packed)) le_accept_cis_request_rp;
+#define LE_ACCEPT_CIS_REQUEST_RP_SIZE 2
+
+#define OCF_LE_REJECT_CIS_REQUEST 0x0067
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     reason;
+} __attribute__ ((packed)) le_reject_cis_request_cp;
+#define LE_REJECT_CIS_REQUEST_CP_SIZE 3
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_reject_cis_request_rp;
+#define LE_REJECT_CIS_REQUEST_CP_SIZE 3
+
+#define OCF_LE_CREATE_BIG 0x0068
+typedef struct {
+    uint8_t     big_handle;
+    uint8_t     advertising_handle;
+    uint8_t     num_bis;
+    uint8_t     sdu_interval[3];
+    uint16_t    max_sdu;
+    uint16_t     max_transport_latency;
+    uint8_t     rtn;
+    uint8_t     phy;
+    uint8_t     packing;
+    uint8_t     framing;
+    uint8_t     encryption;
+    uint8_t     broadcast_code[16];
+} __attribute__ ((packed)) le_create_big_cp;
+#define LE_CREATE_BIG_CP_SIZE 31
+
+#define OCF_LE_CREATE_BIG_TEST 0x0069
+typedef struct {
+    uint8_t     big_handle;
+    uint8_t     advertising_handle;
+    uint8_t     num_bis;
+    uint8_t     sdu_interval[3];
+    uint16_t    iso_interval;
+    uint8_t     nse;
+    uint16_t    max_sdu;
+    uint16_t    max_pdu;
+    uint8_t     phy;
+    uint8_t     packing;
+    uint8_t     framing;
+    uint8_t     bn;
+    uint8_t     irc;
+    uint8_t     pto;
+    uint8_t     encryption;
+    uint8_t     broadcast_code[16];
+} __attribute__ ((packed)) le_create_big_test_cp;
+#define LE_CREATE_BIG_TEST_CP_SIZE 40
+
+#define OCF_LE_TERMINATE_BIG 0x006A
+typedef struct {
+    uint8_t     big_handle;
+    uint8_t     reason;
+} __attribute__ ((packed)) le_terminate_big_cp;
+#define LE_TERMINATE_BIG_CP_SIZE 2
+
+#define OCF_LE_BIG_CREATE_SYNC 0x006B
+typedef struct {
+    uint8_t     big_handle;
+    uint16_t    sync_handle;
+    uint8_t     encryption;
+    uint8_t     broadcast_code[16];
+    uint8_t     mse;
+    uint16_t    big_sync_timeout;
+    uint8_t     num_bis;
+    uint8_t bis[1];
+} __attribute__ ((packed)) le_big_create_sync_cp;
+#define LE_BIG_CREATE_SYNC_CP_SIZE 10
+
+#define OCF_LE_BIG_TERMINATE_SYNC 0x006C
+typedef struct {
+    uint8_t     big_handle;
+} __attribute__ ((packed)) le_big_terminate_sync_cp;
+#define LE_BIG_TERMINATE_SYNC_CP_SIZE 1
+typedef struct {
+    uint8_t     status;
+    uint8_t     big_handle;
+} __attribute__ ((packed)) le_big_terminate_sync_rp;
+#define LE_BIG_TERMINATE_SYNC_RO_SIZE 2
+
+#define OCF_LE_REQUEST_PEER_SCA 0x006D
+typedef struct {
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_request_peer_sca_cp;
+#define LE_REQUEST_PEER_SCA_CP_SIZE   2
+
+#define OCF_LE_SETUP_ISO_DATA_PATH 0x006E
+typedef struct {
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_setup_iso_data_path;
+#define LE_SETUP_ISO_DATA_PATH_SIZE   2
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_setup_iso_data_path_rp;
+#define LE_SETUP_ISO_DATA_PATH_RP_SIZE   3
+
+#define OCF_LE_REMOVE_ISO_DATA_PATH 0x006F
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     data_path_direction;
+} __attribute__ ((packed)) le_remove_iso_data_path_cp;
+#define LE_REMOVE_ISO_DATA_PATH_CP_SIZE   3
+typedef struct {
+    uint8_t      status;
+    uint16_t     connection_handle;
+} __attribute__ ((packed)) le_remove_iso_data_path_p;
+#define LE_REMOVE_ISO_DATA_PATH_RP_SIZE   3
+
+#define OCF_LE_ISO_TRANSMIT_TEST 0x0070
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     payload_type;
+} __attribute__ ((packed)) le_iso_transmit_test_cp;
+#define LE_ISO_TRANSMIT_TEST_CP_SIZE   3
+typedef struct {
+    uint8_t      status;
+    uint16_t     connection_handle;
+} __attribute__ ((packed)) le_iso_transmit_test_rp;
+#define LE_ISO_TRANSMIT_TEST_RP_SIZE   3
+
+#define OCF_LE_ISO_RECEIVE_TEST 0x0071
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     payload_type;
+} __attribute__ ((packed)) le_iso_receive_test_cp;
+#define LE_ISO_RECEIVE_TEST_CP_SIZE   3
+typedef struct {
+    uint8_t      status;
+    uint16_t     connection_handle;
+} __attribute__ ((packed)) le_iso_receive_test_rp;
+#define LE_ISO_RECEIVE_TEST_CP_SIZE   3
+
+#define OCF_LE_ISO_READ_TEST_COUNTERS 0x0072
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     payload_type;
+} __attribute__ ((packed)) le_iso_read_test_counters_cp;
+#define LE_ISO_READ_TEST_COUNTERS_CP_SIZE   3
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+    uint32_t    received_sdu_count;
+    uint32_t    missed_sdu_count;
+    uint32_t    failed_sdu_count;
+} __attribute__ ((packed)) le_iso_read_test_counters_rp;
+#define LE_ISO_READ_TEST_COUNTERS_RP_SIZE   15
+
+#define OCF_LE_ISO_TEST_END 0x0073
+typedef struct {
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_iso_test_end_cp;
+#define LE_ISO_TEST_END_CP_SIZE   2
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+    uint32_t    received_sdu_count;
+    uint32_t    missed_sdu_count;
+    uint32_t    failed_sdu_count;
+} __attribute__ ((packed)) le_iso_test_end_rp;
+#define LE_ISO_TEST_END_RP_SIZE   15
+
+#define OCF_LE_SET_HOST_FEATURE 0x0074
+typedef struct {
+    uint8_t     bit_number;
+    uint8_t     bit_value;
+} __attribute__ ((packed)) le_set_host_feature_cp;
+#define LE_SET_HOST_FEATURE_CP_SIZE   2
+
+#define OCF_LE_READ_ISO_LINK_QUALITY 0x0075
+typedef struct {
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_read_iso_link_quality_cp;
+#define LE_READ_ISO_LINK_QUALITY_CP_SIZE   2
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+    uint32_t    tx_unacked_packets;
+    uint32_t    tx_flushed_packets;
+    uint32_t    tx_last_subevent_packets;
+    uint32_t    retransmitted_packets;
+    uint32_t    crc_error_packets;
+    uint32_t    rx_unreceived_packets;
+    uint32_t    duplicate_packet;
+} __attribute__ ((packed)) le_read_iso_link_quality_rp;
+#define LE_READ_ISO_LINK_QUALITY_RP_SIZE   31
+
+#define OCF_LE_ENHANCED_READ_TRANSMIT_POWER_LEVEL 0x0076
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     phy;
+} __attribute__ ((packed)) le_enhanced_read_transmit_power_level_cp;
+#define LE_ENHANCED_READ_TRANSMIT_POWER_LEVEL_CP_SIZE   3
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+    uint32_t    tx_unacked_packets;
+    uint32_t    tx_flushed_packets;
+    uint32_t    tx_last_subevent_packets;
+    uint32_t    retransmitted_packets;
+    uint32_t    crc_error_packets;
+    uint32_t    rx_unreceived_packets;
+    uint32_t    duplicate_packets;
+} __attribute__ ((packed)) le_enhanced_read_transmit_power_level_rp;
+#define LE_ENHANCED_READ_TRANSMIT_POWER_LEVEL_RP_SIZE   31
+
+#define OCF_LE_READ_REMOTE_TRANSMIT_POWER_LEVEL 0x0077
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     phy;
+} __attribute__ ((packed)) le_read_remote_transmit_power_level_cp;
+#define LE_READ_REMOTE_TRANSMIT_POWER_LEVEL_CP_SIZE   3
+
+#define OCF_LE_SET_PATH_LOSS_REPORTING_PARAMETERS 0x0078
+typedef struct {
+    uint16_t    connection_handle;
+    uint8_t     High_Threshold;
+    uint8_t     High_Hysteresis;
+    uint8_t     Low_Threshold;
+    uint8_t     Low_Hysteresis;
+    uint16_t    Min_Time_Spent;
+} __attribute__ ((packed)) le_set_path_loss_reporting_parameters_cp;
+#define LE_SET_PATH_LOSS_REPORTING_PARAMETERS_CP_SIZE   8
+
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_set_path_loss_reporting_parameters_rp;
+#define LE_SET_PATH_LOSS_REPORTING_PARAMETERS_RP_SIZE   3
+
+#define OCF_LE_SET_PATH_LOSS_REPORTING_ENABLE 0x0079
+typedef struct {
+    uint8_t     status;
+    uint8_t     enable;
+} __attribute__ ((packed)) le_set_path_loss_reporting_enable_cp;
+#define LE_SET_PATH_LOSS_REPORTING_ENABLE_CP_SIZE   2
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_set_path_loss_reporting_enable_rp;
+#define LE_SET_PATH_LOSS_REPORTING_ENABLE_RP_SIZE   3
+
+#define OCF_LE_SET_TRANSMIT_POWER_REPORTING_ENABLE 0x007A
+typedef struct {
+    uint8_t     status;
+    uint8_t     local_enable;
+    uint8_t     remote_enable;
+} __attribute__ ((packed)) le_set_transmit_power_reporting_enable_cp;
+#define LE_SET_TRANSMIT_POWER_REPORTING_ENABLE_CP_SIZE   3
+typedef struct {
+    uint8_t     status;
+    uint16_t    connection_handle;
+} __attribute__ ((packed)) le_set_transmit_power_reporting_enable_rp;
+#define LE_SET_TRANSMIT_POWER_REPORTING_ENABLE_RP_SIZE   3
+
+#define OCF_LE_SET_DATA_RELATED_ADDRESS_CHANGES 0x007C
+typedef struct {
+    uint8_t     Advertising_Handle;
+    uint8_t     Change_Reasons;
+} __attribute__ ((packed)) le_set_data_related_address_changes_cp;
+#define LE_SET_DATA_RELATED_ADDRESS_CHANGES_CP_SIZE   2
+
+#define OCF_LE_SET_DEFAULT_SUBRATE 0x007D
+typedef struct {
+    uint16_t    subrate_min;
+    uint16_t    subrate_max;
+    uint16_t    max_latency;
+    uint16_t    continuation_number;
+    uint16_t    supervision_timeout;
+} __attribute__ ((packed)) ocf_le_set_default_subrate_cp;
+#define OCF_LE_SET_DEFAULT_SUBRATE_CP_SIZE   20
+
+#define OCF_LE_SUBRATE_REQUEST 0x007E
+typedef struct {
+    uint16_t    connection_handle;
+    uint16_t    subrate_min;
+    uint16_t    subrate_max;
+    uint16_t    max_latency;
+    uint16_t    continuation_number;
+    uint16_t    supervision_timeout;
+} __attribute__ ((packed)) ocf_le_subrate_request_cp;
+#define OCF_LE_SUBRATE_REQUEST_CP_SIZE   24
+
+#define OCF_LE_SET_PERIODIC_ADVERTISING_SUBEVENT_DATA 0x82
+typedef struct {
+    uint8_t     advertising_handle;
+    uint8_t     num_subevents;
+    uint8_t     subevent[1];
+    uint8_t     response_slot_start[1];
+    uint8_t     response_slot_count[1];
+    uint8_t     subevent_data_length[1];
+    uint8_t     subevent_data[1];
+} __attribute__ ((packed)) le_set_periodic_advertising_subevent_data_cp;
+#define LE_SET_PERIODIC_ADVERTISING_SUBEVENT_DATA_CP_DIZE   7
+
+typedef struct {
+    uint8_t     status;
+    uint8_t     advertising_handle;
+} __attribute__ ((packed)) le_set_periodic_advertising_subevent_data_rp;
+#define LE_SET_PERIODIC_ADVERTISING_SUBEVENT_DATA_RP_SIZE   2
+
+
+#define OCF_LE_SET_PERIODIC_ADVERTISING_RESPONSE_DATA 0x83
+typedef struct {
+    uint16_t    sync_handle;
+    uint16_t    request_event;
+    uint8_t     request_subevent;
+    uint8_t     response_subevent;
+    uint8_t     response_slot;
+    uint8_t     response_data_length;
+    uint8_t     response_data[1];
+} __attribute__ ((packed)) le_set_periodic_advertising_response_data_cp;
+#define LE_SET_PERIODIC_ADVERTISING_RESPONSE_DATA_CP_SIZE   13
+
+typedef struct {
+    uint8_t     status;
+    uint16_t    sync_handle;
+} __attribute__ ((packed)) le_set_periodic_advertising_response_data_rp;
+#define LE_SET_PERIODIC_ADVERTISING_RESPONSE_DATA_RP_SIZE   3
+
+#define OCF_LE_SET_PERIODIC_SYNC_SUBEVENT 0x84
+typedef struct {
+    uint16_t    sync_handle;
+    uint8_t     periodic_advertising_properties;
+    uint8_t     num_subevents;
+    uint8_t     subevent[1];
+} __attribute__ ((packed)) le_set_periodic_sync_subevent_cp;
+#define LE_SET_PERIODIC_SYNC_SUBEVENT_CP_SIZE   5
+
+typedef struct {
+    uint8_t     status;
+    uint16_t    sync_handle;
+} __attribute__ ((packed)) le_set_periodic_sync_subevent_rp;
+#define LE_SET_PERIODIC_SYNC_SUBEVENT_RP_SIZE   3
+
 
 /* Vendor specific commands */
 #define OGF_VENDOR_CMD		0x3f
@@ -2295,42 +3285,42 @@ typedef struct {
 } __attribute__ ((packed)) evt_le_long_term_key_request;
 #define EVT_LE_LTK_REQUEST_SIZE 12
 
-#define EVT_LE_Remote_Connection_Parameter_Request 0x06
-#define EVT_LE_Data_Length_Change               0x07
-#define EVT_LE_Read_Local_P_256_Public_Key_Complete 0x08
-#define EVT_LE_Generate_DHKey_Complete 0x09
-#define EVT_LE_Enhanced_Connection_Complete_v1 0x0A
-#define EVT_LE_Enhanced_Connection_Complete_v2 0x29
-#define EVT_LE_Directed_Advertising_Report 0x0B
-#define EVT_LE_PHY_Update_Complete 0x0C
-#define EVT_LE_Extended_Advertising_Report 0x0D
-#define EVT_LE_Periodic_Advertising_Sync_Established_v1 0x0E
-#define EVT_LE_Periodic_Advertising_Sync_Established_v2 0x24
-#define EVT_LE_Periodic_Advertising_Report_v1 0x0F
-#define EVT_LE_Periodic_Advertising_Report_v2 0x25
-#define EVT_LE_Periodic_Advertising_Sync_Lost 0x10
-#define EVT_LE_Scan_Timeout  0x11
-#define EVT_LE_Advertising_Set_Terminated 0x12
-#define EVT_LE_Scan_Request_Received 0x13
-#define EVT_LE_Channel_Selection_Algorithm 0x14
-#define EVT_LE_Connectionless_IQ_Report 0x15
-#define EVT_LE_Connection_IQ_Report 0x16
-#define EVT_LE_CTE_Request_Failed 0x17
-#define EVT_LE_Periodic_Advertising_Sync_Transfer_Received_v1 0x18
-#define EVT_LE_Periodic_Advertising_Sync_Transfer_Received_v2 0x26
-#define EVT_LE_CIS_Established 0x19
-#define EVT_LE_CIS_Request 0x1A
-#define EVT_LE_Create_BIG_Complete 0x1B
-#define EVT_LE_Terminate_BIG_Complete 0x1C
-#define EVT_LE_BIG_Sync_Established 0x1D
-#define EVT_LE_BIG_Sync_Lost 0x1E
-#define EVT_LE_Request_Peer_SCA_Complete 0x1F
-#define EVT_LE_Path_Loss_Threshold 0x20
-#define EVT_LE_Transmit_Power_Reporting 0x21
-#define EVT_LE_BIGInfo_Advertising_Report 0x22
-#define EVT_LE_Subrate_Change 0x23
-#define EVT_LE_Periodic_Advertising_Subevent_Data_Request 0x27
-#define EVT_LE_Periodic_Advertising_Response_Report 0x28
+#define EVT_LE_REMOTE_CONNECTION_PARAMETER_REQUEST 0x06
+#define EVT_LE_DATA_LENGTH_CHANGE               0x07
+#define EVT_LE_READ_LOCAL_P_256_PUBLIC_KEY_COMPLETE 0x08
+#define EVT_LE_GENERATE_DHKEY_COMPLETE 0x09
+#define EVT_LE_ENHANCED_CONNECTION_COMPLETE_V1 0x0A
+#define EVT_LE_ENHANCED_CONNECTION_COMPLETE_V2 0x29
+#define EVT_LE_DIRECTED_ADVERTISING_REPORT 0x0B
+#define EVT_LE_PHY_UPDATE_COMPLETE 0x0C
+#define EVT_LE_EXTENDED_ADVERTISING_REPORT 0x0D
+#define EVT_LE_PERIODIC_ADVERTISING_SYNC_ESTABLISHED_V1 0x0E
+#define EVT_LE_PERIODIC_ADVERTISING_SYNC_ESTABLISHED_V2 0x24
+#define EVT_LE_PERIODIC_ADVERTISING_REPORT_V1 0x0F
+#define EVT_LE_PERIODIC_ADVERTISING_REPORT_V2 0x25
+#define EVT_LE_PERIODIC_ADVERTISING_SYNC_LOST 0x10
+#define EVT_LE_SCAN_TIMEOUT  0x11
+#define EVT_LE_ADVERTISING_SET_TERMINATED 0x12
+#define EVT_LE_SCAN_REQUEST_RECEIVED 0x13
+#define EVT_LE_CHANNEL_SELECTION_ALGORITHM 0x14
+#define EVT_LE_CONNECTIONLESS_IQ_REPORT 0x15
+#define EVT_LE_CONNECTION_IQ_REPORT 0x16
+#define EVT_LE_CTE_REQUEST_FAILED 0x17
+#define EVT_LE_PERIODIC_ADVERTISING_SYNC_TRANSFER_RECEIVED_V1 0x18
+#define EVT_LE_PERIODIC_ADVERTISING_SYNC_TRANSFER_RECEIVED_V2 0x26
+#define EVT_LE_CIS_ESTABLISHED 0x19
+#define EVT_LE_CIS_REQUEST 0x1A
+#define EVT_LE_CREATE_BIG_COMPLETE 0x1B
+#define EVT_LE_TERMINATE_BIG_COMPLETE 0x1C
+#define EVT_LE_BIG_SYNC_ESTABLISHED 0x1D
+#define EVT_LE_BIG_SYNC_LOST 0x1E
+#define EVT_LE_REQUEST_PEER_SCA_COMPLETE 0x1F
+#define EVT_LE_PATH_LOSS_THRESHOLD 0x20
+#define EVT_LE_TRANSMIT_POWER_REPORTING 0x21
+#define EVT_LE_BIGINFO_ADVERTISING_REPORT 0x22
+#define EVT_LE_SUBRATE_CHANGE 0x23
+#define EVT_LE_PERIODIC_ADVERTISING_SUBEVENT_DATA_REQUEST 0x27
+#define EVT_LE_PERIODIC_ADVERTISING_RESPONSE_REPORT 0x28
 
 #define EVT_PHYSICAL_LINK_COMPLETE		0x40
 typedef struct {
