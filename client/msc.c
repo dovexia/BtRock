@@ -53,7 +53,7 @@ void msc_hex_dump(char *pref, int width, unsigned char *buf, int len)
 		bt_shell_printf("\n");
 }
 
-void msc_init_env(int argc, char *argv[])
+void msc_init_env(int argc, char *argvcmd_req)
 {
     int opt;
 	uint8_t events[8] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0x1f, 0x00, 0x00 };
@@ -87,13 +87,13 @@ void msc_init_env(int argc, char *argv[])
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_clear_env(int argc, char *argv[])
+void msc_clear_env(int argc, char *argvcmd_req)
 {
 	hci_close_dev(devfd);
     bt_shell_printf("%s\n", __func__);
 }
 /* in 2.1 Initial setup*/
-void msc_Initial_setup(int argc, char *argv[])
+void msc_Initial_setup(int argc, char *argvcmd_req)
 {
     int32_t ret;
     int32_t default_timeout = 1000;
@@ -203,7 +203,7 @@ void msc_Initial_setup(int argc, char *argv[])
  }
 
 /* in 2.2 Random Device Address*/
-void msc_Random_Device_address(int argc, char *argv[])
+void msc_Random_Device_address(int argc, char *argvcmd_req)
 {
     bt_shell_printf("%s\n", __func__);
     uint8_t status = 0;
@@ -250,7 +250,7 @@ void msc_Random_Device_address(int argc, char *argv[])
 }
 
 /* in 2.3 Filter accept List*/
-void msc_Filter_Accept_List(int argc, char *argv[])
+void msc_Filter_Accept_List(int argc, char *argvcmd_req)
 {
     uint8_t status;
     bt_shell_printf("%s\n", __func__);
@@ -297,7 +297,7 @@ void msc_Filter_Accept_List(int argc, char *argv[])
 }
 
 /* in 2.4Adding IRK to resolving list*/
-void msc_Adding_IRK_to_resolving_list(int argc, char *argv[])
+void msc_Adding_IRK_to_resolving_list(int argc, char *argvcmd_req)
 {
     bt_shell_printf("%s\n", __func__);
     uint8_t status = 0;
@@ -347,7 +347,7 @@ void msc_Adding_IRK_to_resolving_list(int argc, char *argv[])
 }
 
 /* in 2.5 Default data length*/
-void msc_Default_data_length(int argc, char *argv[])
+void msc_Default_data_length(int argc, char *argvcmd_req)
 {
     uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
@@ -380,7 +380,7 @@ void msc_Default_data_length(int argc, char *argv[])
 }
 
 /* in 2.6 Periodic Advertiser List*/
-void msc_Periodic_Advertiser_List(int argc, char *argv[])
+void msc_Periodic_Advertiser_List(int argc, char *argvcmd_req)
 {
     uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
@@ -423,400 +423,548 @@ void msc_Periodic_Advertiser_List(int argc, char *argv[])
 
 //Advertising state
 /* in 3.1 Undirected advertising*/
-void msc_Undirected_advertising(int argc, char *argv[])
+void msc_Undirected_advertising(int argc, char *argvcmd_req)
 {
     uint8_t status = 0;
-     bt_shell_printf("%s\n", __func__);
+    bt_shell_printf("%s\n", __func__);
+
+    //LE set advertising parameters
+    //LE read advertising physical channel tx msc_Power
+    //LEset advertising data //
+    //LE set scan response msc_Data_length_update
+    //LE set advertisging eanble
+    //LE set advertisging disable
 }
 
 //In 3.2 Directed advertising
-void msc_Directed_advertising(int argc, char *argv[])
+void msc_high_duty_cycle_Directed_advertising_(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+    //LE set advertising parameters
+    //LE set advertising enable
+    //LE advertising disabled when device is connected
 }
 
-void msc_Advertising_using_ADV_EXT_IND(int argc, char *argv[])
+//In 3.2 Directed advertising
+void msc_low_duty_cycle_Directed_advertising_(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+    //LE set advertising parameters
+    //LE set advertising enable
+    //LE set advertising disable
 }
 
-void msc_Scan_request_notifications(int argc, char *argv[])
+void msc_Advertising_using_ADV_EXT_IND(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+    //LE set Extended advertising parameters
+    //LE set extended advertising data
+    //LE set extended scan response data
+    //LE set extended advertisging enable
+    //LE set extended advertisging disable
 }
 
-void msc_Advertising_duration_ended(int argc, char *argv[])
+void msc_Scan_request_notifications(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+
+    //LE set extended advertising parameters --scan_request_notification_enable is set
+    //LE set extended advertising Data
+    //LE set extended scan response data
+    //LE set extended advertising enable
+
+    //verify event LE scan request received.
+
 }
 
-void msc_Periodic_advertising(int argc, char *argv[])
+void msc_Advertising_duration_ended(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+    //LE set extended advertising parameters
+    //LE set extended advertising Data
+    //LE set extended scan response data
+    //LE set extended advertising enable
+
+    //verify event LE advertising set terminated received.
 }
 
-void msc_Connectionless_Constant_Tone_Extension_transmission(int argc, char *argv[])
+void msc_Periodic_advertising(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+    //LE set extended advertising parameters
+    //LE set periotic advertising parameters
+    //LE set periodic advertising enable
+    //LE set extended advertising enable
+    //LE set periodic advertising data
+
+    //LE set periodic advertising data
+
+    //LE set periodic advertising disable
+    //LE set extended advertisiong disable
 }
 
-void msc_Isochronous_Broadcasting_State(int argc, char *argv[])
+void msc_Connectionless_Constant_Tone_Extension_transmission(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+    //LE set extended advertising parameters
+    //LE set periotic advertising parameters
+    //LE set connectionless CTE transmit parameters
+    //LE set connectionless CTE transmig enable
+    //LE set periodic advertising enable
+    //LE set extended advertising enable
+    //LE set periodic adversting data
+
+    //verify
+    //LE set periodic advertising data
+    //verify 2
+    //LE set periodic advertising data
+    //verify 3
+
 }
 
-void msc_Create_a_Broadcast_Isochronous_Group(int argc, char *argv[])
+//Isochronous_Broadcasting_State
+void msc_Create_a_Broadcast_Isochronous_Group(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+    //Device set periodic advertisements
+    //verify adv_EXT_IND, aux_adv_ind, aux_sync_ind
+    //LE create BIG
+    //verify aux_sync_ind+ACAD
+    //LE create BIG complete
+    //LE setup ISO data patch
+    //verify BIS data packet
+    //verify AUX_SYNC_IND + ACAD
 }
 
-void msc_Terminate_a_Broadcast_Isochronous_Group(int argc, char *argv[])
+void msc_Terminate_a_Broadcast_Isochronous_Group(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
+    //step: device is synchornized to a BIG
+    //LE terminate BUG
+    //verify comand status
+    //verify LE terminate BIG complete
 }
 
-void msc_Periodic_advertising_with_responses_PAwR(int argc, char *argv[])
+void msc_Periodic_advertising_with_responses_PAwR(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Transmitting_PAwR_subevents(int argc, char *argv[])
+void msc_Transmitting_PAwR_subevents(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Using_a_response_slot_in_PAwR(int argc, char *argv[])
+void msc_Using_a_response_slot_in_PAwR(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Connecting_from_PAwR(int argc, char *argv[])
+void msc_Connecting_from_PAwR(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Failed_Connection_Attempts_From_PAWR(int argc, char *argv[])
+void msc_Failed_Connection_Attempts_From_PAWR(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Scanning_state(int argc, char *argv[])
+void msc_Scanning_state(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Passive_scanning(int argc, char *argv[])
+void msc_Passive_scanning(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Active_scanning(int argc, char *argv[])
+void msc_Active_scanning(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Passive_scanning_for_directed_advertisements_with_Privacy(int argc, char *argv[])
+void msc_Passive_scanning_for_directed_advertisements_with_Privacy(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Active_scanning_with_Privacy(int argc, char *argv[])
+void msc_Active_scanning_with_Privacy(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Active_scanning_with_Privacy_and_Controller_based_resolvable_private_address_generatio(int argc, char *argv[])
+void msc_Active_scanning_with_Privacy_and_Controller_based_resolvable_private_address_generatio(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Active_scanning_on_the_secondary_advertising_Physical_channel(int argc, char *argv[])
+void msc_Active_scanning_on_the_secondary_advertising_Physical_channel(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Scan_timeout(int argc, char *argv[])
+void msc_Scan_timeout(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Scanning_for_periodic_advertisements(int argc, char *argv[])
+void msc_Scanning_for_periodic_advertisements(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Cancel_scanning_for_periodic_advertisements(int argc, char *argv[])
+void msc_Cancel_scanning_for_periodic_advertisements(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Periodic_advertising_synchronization_timeout(int argc, char *argv[])
+void msc_Periodic_advertising_synchronization_timeout(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Terminate_reception_of_periodic_advertising(int argc, char *argv[])
+void msc_Terminate_reception_of_periodic_advertising(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Connectionless_Constant_Tone_Extension_reception(int argc, char *argv[])
+void msc_Connectionless_Constant_Tone_Extension_reception(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Synchronization_with_separate_enable_of_reports(int argc, char *argv[])
+void msc_Synchronization_with_separate_enable_of_reports(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Initiating_state(int argc, char *argv[])
+void msc_Initiating_state(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Initiating_a_connection(int argc, char *argv[])
+void msc_Initiating_a_connection(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Canceling_an_initiation(int argc, char *argv[])
+void msc_Canceling_an_initiation(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Initiating_a_connection_using_undirected_advertising_with_Privacy(int argc, char *argv[])
+void msc_Initiating_a_connection_using_undirected_advertising_with_Privacy(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Initiating_a_connection_using_directed_advertising_with_Privacy(int argc, char *argv[])
+void msc_Initiating_a_connection_using_directed_advertising_with_Privacy(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Initiating_a_connection_that_fails_to_establish(int argc, char *argv[])
+void msc_Initiating_a_connection_that_fails_to_establish(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Initiating_a_connection_on_the_secondary_advertising_physical_channel(int argc, char *argv[])
+void msc_Initiating_a_connection_on_the_secondary_advertising_physical_channel(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Initiating_a_Channel_Selection_algorithm_2_connection(int argc, char *argv[])
+void msc_Initiating_a_Channel_Selection_algorithm_2_connection(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Sending_data(int argc, char *argv[])
+void msc_Sending_data(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Connection_update(int argc, char *argv[])
+void msc_Connection_update(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Channel_map_update(int argc, char *argv[])
+void msc_Channel_map_update(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Features_exchange(int argc, char *argv[])
+void msc_Features_exchange(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Version_exchange(int argc, char *argv[])
+void msc_Version_exchange(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Start_encryption(int argc, char *argv[])
+void msc_Start_encryption(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Start_encryption_without_long_term_key(int argc, char *argv[])
+void msc_Start_encryption_without_long_term_key(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Start_encryption_with_event_masked(int argc, char *argv[])
+void msc_Start_encryption_with_event_masked(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Start_encryption_without_Peripheral_supporting_encryption(int argc, char *argv[])
+void msc_Start_encryption_without_Peripheral_supporting_encryption(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Restart_encryption(int argc, char *argv[])
+void msc_Restart_encryption(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Disconnect(int argc, char *argv[])
+void msc_Disconnect(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Connection_parameters_request(int argc, char *argv[])
+void msc_Connection_parameters_request(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_LE_Ping(int argc, char *argv[])
+void msc_LE_Ping(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Data_length_update(int argc, char *argv[])
+void msc_Data_length_update(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_PHY_update(int argc, char *argv[])
+void msc_PHY_update(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Minimum_number_of_used_channels_request(int argc, char *argv[])
+void msc_Minimum_number_of_used_channels_request(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_LL_procedure_collision(int argc, char *argv[])
+void msc_LL_procedure_collision(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Constant_Tone_Extension_Request(int argc, char *argv[])
+void msc_Constant_Tone_Extension_Request(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Connected_Isochronous_Group_Setup(int argc, char *argv[])
+void msc_Connected_Isochronous_Group_Setup(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Host_Rejects_Connected_Isochronous_Stream(int argc, char *argv[])
+void msc_Host_Rejects_Connected_Isochronous_Stream(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Link_Layer_Rejects_Connected_Isochronous_Stream_1(int argc, char *argv[])
+void msc_Link_Layer_Rejects_Connected_Isochronous_Stream_1(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Link_Layer_Rejects_Connected_Isochronous_Stream_2(int argc, char *argv[])
+void msc_Link_Layer_Rejects_Connected_Isochronous_Stream_2(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Host_A_Terminates_Connected_Isochronous_Stream(int argc, char *argv[])
+void msc_Host_A_Terminates_Connected_Isochronous_Stream(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_ACL_disconnected(int argc, char *argv[])
+void msc_ACL_disconnected(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Host_A_Removes_Connected_Isochronous_Group(int argc, char *argv[])
+void msc_Host_A_Removes_Connected_Isochronous_Group(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Request_Sleep_Clock_Accuracy(int argc, char *argv[])
+void msc_Request_Sleep_Clock_Accuracy(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Power_Control(int argc, char *argv[])
+void msc_Power_Control(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Data_path_setup_for_a_music_stream_over_a_CIS(int argc, char *argv[])
+void msc_Data_path_setup_for_a_music_stream_over_a_CIS(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Data_path_setup_for_bidirectional_voice_over_a_CIS(int argc, char *argv[])
+void msc_Data_path_setup_for_bidirectional_voice_over_a_CIS(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Modifying_the_subrate_of_a_connection(int argc, char *argv[])
+void msc_Modifying_the_subrate_of_a_connection(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Channel_Classification_Enable(int argc, char *argv[])
+void msc_Channel_Classification_Enable(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Channel_Classification_Reporting(int argc, char *argv[])
+void msc_Channel_Classification_Reporting(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Periodic_advertising_sync_transfer(int argc, char *argv[])
+void msc_Periodic_advertising_sync_transfer(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Transfer_by_scanner_reports_initially_disabled(int argc, char *argv[])
+void msc_Transfer_by_scanner_reports_initially_disabled(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Transfer_by_scanner_reports_initially_enabled(int argc, char *argv[])
+void msc_Transfer_by_scanner_reports_initially_enabled(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Transfer_by_the_advertiser(int argc, char *argv[])
+void msc_Transfer_by_the_advertiser(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Synchronization_state(int argc, char *argv[])
+void msc_Synchronization_state(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Synchronizing_with_a_Broadcast_Isochronous_Group(int argc, char *argv[])
+void msc_Synchronizing_with_a_Broadcast_Isochronous_Group(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Terminate_Synchronization_with_a_BIG(int argc, char *argv[])
+void msc_Terminate_Synchronization_with_a_BIG(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_New_Channel_Map_for_Broadcast_Isochronous_Group(int argc, char *argv[])
+void msc_New_Channel_Map_for_Broadcast_Isochronous_Group(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Lost_Synchronization_with_a_Broadcast_Isochronous_Group(int argc, char *argv[])
+void msc_Lost_Synchronization_with_a_Broadcast_Isochronous_Group(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
-void msc_Data_path_setup_for_a_BIS(int argc, char *argv[])
+void msc_Data_path_setup_for_a_BIS(int argc, char *argvcmd_req)
 {
+    uint8_t status = 0;
     bt_shell_printf("%s\n", __func__);
 }
 
@@ -828,94 +976,94 @@ const struct bt_shell_menu msc_menu = {
 	.name = "msc",
 	.desc = "msc Submenu",
 	.entries = {
-	{ "msc_init_env", "[]", msc_init_env, "Init le hci command test environment" },
-	{ "msc_clear_env", "[]", msc_clear_env, "Clear le hci command test environment" },
-	{ "msc_Initial_setup", "[]", msc_Initial_setup, "" },
-	{ "msc_Random_Device_address", "[]", msc_Random_Device_address, "" },
+	{ "msc_init_env", "", msc_init_env, "Init le hci command test environment" },
+	{ "msc_clear_env", "", msc_clear_env, "Clear le hci command test environment" },
+	{ "msc_Initial_setup", "", msc_Initial_setup, "" },
+	{ "msc_Random_Device_address", "cmd_req", msc_Random_Device_address, "" },
 #if 0
-	{ "msc_Filter_Accept_List", "[]", msc_Filter_Accept_List, "" },
-	{ "msc_Adding_IRK_to_resolving_list", "[]", msc_Adding_IRK_to_resolving_list, "" },
-	{ "msc_Default_data_length", "[]", msc_Default_data_length, "" },
-	{ "msc_Periodic_Advertiser_List", "[]", msc_Periodic_Advertiser_List, "" },
-	{ "msc_Undirected_advertising", "[]", msc_Undirected_advertising, "" },
-	{ "msc_Directed_advertising", "[]", msc_Directed_advertising, "" },
-	{ "msc_Advertising_using_ADV_EXT_IND", "[]", msc_Advertising_using_ADV_EXT_IND, "" },
-	{ "msc_Scan_request_notifications", "[]", msc_Scan_request_notifications, "" },
-	{ "msc_Advertising_duration_ended", "[]", msc_Advertising_duration_ended, "" },
-	{ "msc_Periodic_advertising", "[]", msc_Periodic_advertising, "" },
-	{ "msc_Connectionless_Constant_Tone_Extension_transmission", "[]", msc_Connectionless_Constant_Tone_Extension_transmission, "" },
-	{ "msc_Isochronous_Broadcasting_State", "[]", msc_Isochronous_Broadcasting_State, "" },
-	{ "msc_Create_a_Broadcast_Isochronous_Group", "[]", msc_Create_a_Broadcast_Isochronous_Group, "" },
-	{ "msc_Terminate_a_Broadcast_Isochronous_Group", "[]", msc_Terminate_a_Broadcast_Isochronous_Group, "" },
-	{ "msc_Periodic_advertising_with_responses_PAwR", "[]", msc_Periodic_advertising_with_responses_PAwR, "" },
-	{ "msc_Transmitting_PAwR_subevents", "[]", msc_Transmitting_PAwR_subevents, "" },
-	{ "msc_Using_a_response_slot_in_PAwR", "[]", msc_Using_a_response_slot_in_PAwR, "" },
-	{ "msc_Connecting_from_PAwR", "[]", msc_Connecting_from_PAwR, "" },
-	{ "msc_Failed_Connection_Attempts_From_PAWR", "[]", msc_Failed_Connection_Attempts_From_PAWR, "" },
-	{ "msc_Scanning_state", "[]", msc_Scanning_state, "" },
-	{ "msc_Passive_scanning", "[]", msc_Passive_scanning, "" },
-	{ "msc_Active_scanning", "[]", msc_Active_scanning, "" },
-	{ "msc_Passive_scanning_for_directed_advertisements_with_Privacy", "[]", msc_Passive_scanning_for_directed_advertisements_with_Privacy, "" },
-	{ "msc_Active_scanning_with_Privacy", "[]", msc_Active_scanning_with_Privacy, "" },
-	{ "msc_Active_scanning_with_Privacy_and_Controller_based_resolvable_private_address_generatio", "[]", msc_Active_scanning_with_Privacy_and_Controller_based_resolvable_private_address_generatio, "" },
-	{ "msc_Active_scanning_on_the_secondary_advertising_Physical_channel", "[]", msc_Active_scanning_on_the_secondary_advertising_Physical_channel, "" },
-	{ "msc_Scan_timeout", "[]", msc_Scan_timeout, "" },
-	{ "msc_Scanning_for_periodic_advertisements", "[]", msc_Scanning_for_periodic_advertisements, "" },
-	{ "msc_Cancel_scanning_for_periodic_advertisements", "[]", msc_Cancel_scanning_for_periodic_advertisements, "" },
-	{ "msc_Periodic_advertising_synchronization_timeout", "[]", msc_Periodic_advertising_synchronization_timeout, "" },
-	{ "msc_Terminate_reception_of_periodic_advertising", "[]", msc_Terminate_reception_of_periodic_advertising, "" },
-	{ "msc_Connectionless_Constant_Tone_Extension_reception", "[]", msc_Connectionless_Constant_Tone_Extension_reception, "" },
-	{ "msc_Synchronization_with_separate_enable_of_reports", "[]", msc_Synchronization_with_separate_enable_of_reports, "" },
-	{ "msc_Initiating_state", "[]", msc_Initiating_state, "" },
-	{ "msc_Initiating_a_connection", "[]", msc_Initiating_a_connection, "" },
-	{ "msc_Canceling_an_initiation", "[]", msc_Canceling_an_initiation, "" },
-	{ "msc_Initiating_a_connection_using_undirected_advertising_with_Privacy", "[]", msc_Initiating_a_connection_using_undirected_advertising_with_Privacy, "" },
-	{ "msc_Initiating_a_connection_using_directed_advertising_with_Privacy", "[]", msc_Initiating_a_connection_using_directed_advertising_with_Privacy, "" },
-	{ "msc_Initiating_a_connection_that_fails_to_establish", "[]", msc_Initiating_a_connection_that_fails_to_establish, "" },
-	{ "msc_Initiating_a_connection_on_the_secondary_advertising_physical_channel", "[]", msc_Initiating_a_connection_on_the_secondary_advertising_physical_channel, "" },
-	{ "msc_Initiating_a_Channel_Selection_algorithm_2_connection", "[]", msc_Initiating_a_Channel_Selection_algorithm_2_connection, "" },
-	{ "msc_Sending_data", "[]", msc_Sending_data, "" },
-	{ "msc_Connection_update", "[]", msc_Connection_update, "" },
-	{ "msc_Channel_map_update", "[]", msc_Channel_map_update, "" },
-	{ "msc_Features_exchange", "[]", msc_Features_exchange, "" },
-	{ "msc_Version_exchange", "[]", msc_Version_exchange, "" },
-	{ "msc_Start_encryption", "[]", msc_Start_encryption, "" },
-	{ "msc_Start_encryption_without_long_term_key", "[]", msc_Start_encryption_without_long_term_key, "" },
-	{ "msc_Start_encryption_with_event_masked", "[]", msc_Start_encryption_with_event_masked, "" },
-	{ "msc_Start_encryption_without_Peripheral_supporting_encryption", "[]", msc_Start_encryption_without_Peripheral_supporting_encryption, "" },
-	{ "msc_Restart_encryption", "[]", msc_Restart_encryption, "" },
-	{ "msc_Disconnect", "[]", msc_Disconnect, "" },
-	{ "msc_Connection_parameters_request", "[]", msc_Connection_parameters_request, "" },
-	{ "msc_LE_Ping", "[]", msc_LE_Ping, "" },
-	{ "msc_Data_length_update", "[]", msc_Data_length_update, "" },
-	{ "msc_PHY_update", "[]", msc_PHY_update, "" },
-	{ "msc_Minimum_number_of_used_channels_request", "[]", msc_Minimum_number_of_used_channels_request, "" },
-	{ "msc_LL_procedure_collision", "[]", msc_LL_procedure_collision, "" },
-	{ "msc_Constant_Tone_Extension_Request", "[]", msc_Constant_Tone_Extension_Request, "" },
-	{ "msc_Connected_Isochronous_Group_Setup", "[]", msc_Connected_Isochronous_Group_Setup, "" },
-	{ "msc_Host_Rejects_Connected_Isochronous_Stream", "[]", msc_Host_Rejects_Connected_Isochronous_Stream, "" },
-	{ "msc_Link_Layer_Rejects_Connected_Isochronous_Stream_1", "[]", msc_Link_Layer_Rejects_Connected_Isochronous_Stream_1, "" },
-	{ "msc_Link_Layer_Rejects_Connected_Isochronous_Stream_2", "[]", msc_Link_Layer_Rejects_Connected_Isochronous_Stream_2, "" },
-	{ "msc_Host_A_Terminates_Connected_Isochronous_Stream", "[]", msc_Host_A_Terminates_Connected_Isochronous_Stream, "" },
-	{ "msc_ACL_disconnected", "[]", msc_ACL_disconnected, "" },
-	{ "msc_Host_A_Removes_Connected_Isochronous_Group", "[]", msc_Host_A_Removes_Connected_Isochronous_Group, "" },
-	{ "msc_Request_Sleep_Clock_Accuracy", "[]", msc_Request_Sleep_Clock_Accuracy, "" },
-	{ "msc_Power_Control", "[]", msc_Power_Control, "" },
-	{ "msc_Data_path_setup_for_a_music_stream_over_a_CIS", "[]", msc_Data_path_setup_for_a_music_stream_over_a_CIS, "" },
-	{ "msc_Data_path_setup_for_bidirectional_voice_over_a_CIS", "[]", msc_Data_path_setup_for_bidirectional_voice_over_a_CIS, "" },
-	{ "msc_Modifying_the_subrate_of_a_connection", "[]", msc_Modifying_the_subrate_of_a_connection, "" },
-	{ "msc_Channel_Classification_Enable", "[]", msc_Channel_Classification_Enable, "" },
-	{ "msc_Channel_Classification_Reporting", "[]", msc_Channel_Classification_Reporting, "" },
-	{ "msc_Periodic_advertising_sync_transfer", "[]", msc_Periodic_advertising_sync_transfer, "" },
-	{ "msc_Transfer_by_scanner_reports_initially_disabled", "[]", msc_Transfer_by_scanner_reports_initially_disabled, "" },
-	{ "msc_Transfer_by_scanner_reports_initially_enabled", "[]", msc_Transfer_by_scanner_reports_initially_enabled, "" },
-	{ "msc_Transfer_by_the_advertiser", "[]", msc_Transfer_by_the_advertiser, "" },
-	{ "msc_Synchronization_state", "[]", msc_Synchronization_state, "" },
-	{ "msc_Synchronizing_with_a_Broadcast_Isochronous_Group", "[]", msc_Synchronizing_with_a_Broadcast_Isochronous_Group, "" },
-	{ "msc_Terminate_Synchronization_with_a_BIG", "[]", msc_Terminate_Synchronization_with_a_BIG, "" },
-	{ "msc_New_Channel_Map_for_Broadcast_Isochronous_Group", "[]", msc_New_Channel_Map_for_Broadcast_Isochronous_Group, "" },
-	{ "msc_Lost_Synchronization_with_a_Broadcast_Isochronous_Group", "[]", msc_Lost_Synchronization_with_a_Broadcast_Isochronous_Group, "" },
-	{ "msc_Data_path_setup_for_a_BIS", "[]", msc_Data_path_setup_for_a_BIS, "" },
+	{ "msc_Filter_Accept_List", "cmd_req", msc_Filter_Accept_List, "" },
+	{ "msc_Adding_IRK_to_resolving_list", "cmd_req", msc_Adding_IRK_to_resolving_list, "" },
+	{ "msc_Default_data_length", "cmd_req", msc_Default_data_length, "" },
+	{ "msc_Periodic_Advertiser_List", "cmd_req", msc_Periodic_Advertiser_List, "" },
+	{ "msc_Undirected_advertising", "cmd_req", msc_Undirected_advertising, "" },
+	{ "msc_Directed_advertising", "cmd_req", msc_Directed_advertising, "" },
+	{ "msc_Advertising_using_ADV_EXT_IND", "cmd_req", msc_Advertising_using_ADV_EXT_IND, "" },
+	{ "msc_Scan_request_notifications", "cmd_req", msc_Scan_request_notifications, "" },
+	{ "msc_Advertising_duration_ended", "cmd_req", msc_Advertising_duration_ended, "" },
+	{ "msc_Periodic_advertising", "cmd_req", msc_Periodic_advertising, "" },
+	{ "msc_Connectionless_Constant_Tone_Extension_transmission", "cmd_req", msc_Connectionless_Constant_Tone_Extension_transmission, "" },
+	{ "msc_Isochronous_Broadcasting_State", "cmd_req", msc_Isochronous_Broadcasting_State, "" },
+	{ "msc_Create_a_Broadcast_Isochronous_Group", "cmd_req", msc_Create_a_Broadcast_Isochronous_Group, "" },
+	{ "msc_Terminate_a_Broadcast_Isochronous_Group", "cmd_req", msc_Terminate_a_Broadcast_Isochronous_Group, "" },
+	{ "msc_Periodic_advertising_with_responses_PAwR", "cmd_req", msc_Periodic_advertising_with_responses_PAwR, "" },
+	{ "msc_Transmitting_PAwR_subevents", "cmd_req", msc_Transmitting_PAwR_subevents, "" },
+	{ "msc_Using_a_response_slot_in_PAwR", "cmd_req", msc_Using_a_response_slot_in_PAwR, "" },
+	{ "msc_Connecting_from_PAwR", "cmd_req", msc_Connecting_from_PAwR, "" },
+	{ "msc_Failed_Connection_Attempts_From_PAWR", "cmd_req", msc_Failed_Connection_Attempts_From_PAWR, "" },
+	{ "msc_Scanning_state", "cmd_req", msc_Scanning_state, "" },
+	{ "msc_Passive_scanning", "cmd_req", msc_Passive_scanning, "" },
+	{ "msc_Active_scanning", "cmd_req", msc_Active_scanning, "" },
+	{ "msc_Passive_scanning_for_directed_advertisements_with_Privacy", "cmd_req", msc_Passive_scanning_for_directed_advertisements_with_Privacy, "" },
+	{ "msc_Active_scanning_with_Privacy", "cmd_req", msc_Active_scanning_with_Privacy, "" },
+	{ "msc_Active_scanning_with_Privacy_and_Controller_based_resolvable_private_address_generatio", "cmd_req", msc_Active_scanning_with_Privacy_and_Controller_based_resolvable_private_address_generatio, "" },
+	{ "msc_Active_scanning_on_the_secondary_advertising_Physical_channel", "cmd_req", msc_Active_scanning_on_the_secondary_advertising_Physical_channel, "" },
+	{ "msc_Scan_timeout", "cmd_req", msc_Scan_timeout, "" },
+	{ "msc_Scanning_for_periodic_advertisements", "cmd_req", msc_Scanning_for_periodic_advertisements, "" },
+	{ "msc_Cancel_scanning_for_periodic_advertisements", "cmd_req", msc_Cancel_scanning_for_periodic_advertisements, "" },
+	{ "msc_Periodic_advertising_synchronization_timeout", "cmd_req", msc_Periodic_advertising_synchronization_timeout, "" },
+	{ "msc_Terminate_reception_of_periodic_advertising", "cmd_req", msc_Terminate_reception_of_periodic_advertising, "" },
+	{ "msc_Connectionless_Constant_Tone_Extension_reception", "cmd_req", msc_Connectionless_Constant_Tone_Extension_reception, "" },
+	{ "msc_Synchronization_with_separate_enable_of_reports", "cmd_req", msc_Synchronization_with_separate_enable_of_reports, "" },
+	{ "msc_Initiating_state", "cmd_req", msc_Initiating_state, "" },
+	{ "msc_Initiating_a_connection", "cmd_req", msc_Initiating_a_connection, "" },
+	{ "msc_Canceling_an_initiation", "cmd_req", msc_Canceling_an_initiation, "" },
+	{ "msc_Initiating_a_connection_using_undirected_advertising_with_Privacy", "cmd_req", msc_Initiating_a_connection_using_undirected_advertising_with_Privacy, "" },
+	{ "msc_Initiating_a_connection_using_directed_advertising_with_Privacy", "cmd_req", msc_Initiating_a_connection_using_directed_advertising_with_Privacy, "" },
+	{ "msc_Initiating_a_connection_that_fails_to_establish", "cmd_req", msc_Initiating_a_connection_that_fails_to_establish, "" },
+	{ "msc_Initiating_a_connection_on_the_secondary_advertising_physical_channel", "cmd_req", msc_Initiating_a_connection_on_the_secondary_advertising_physical_channel, "" },
+	{ "msc_Initiating_a_Channel_Selection_algorithm_2_connection", "cmd_req", msc_Initiating_a_Channel_Selection_algorithm_2_connection, "" },
+	{ "msc_Sending_data", "cmd_req", msc_Sending_data, "" },
+	{ "msc_Connection_update", "cmd_req", msc_Connection_update, "" },
+	{ "msc_Channel_map_update", "cmd_req", msc_Channel_map_update, "" },
+	{ "msc_Features_exchange", "cmd_req", msc_Features_exchange, "" },
+	{ "msc_Version_exchange", "cmd_req", msc_Version_exchange, "" },
+	{ "msc_Start_encryption", "cmd_req", msc_Start_encryption, "" },
+	{ "msc_Start_encryption_without_long_term_key", "cmd_req", msc_Start_encryption_without_long_term_key, "" },
+	{ "msc_Start_encryption_with_event_masked", "cmd_req", msc_Start_encryption_with_event_masked, "" },
+	{ "msc_Start_encryption_without_Peripheral_supporting_encryption", "cmd_req", msc_Start_encryption_without_Peripheral_supporting_encryption, "" },
+	{ "msc_Restart_encryption", "cmd_req", msc_Restart_encryption, "" },
+	{ "msc_Disconnect", "cmd_req", msc_Disconnect, "" },
+	{ "msc_Connection_parameters_request", "cmd_req", msc_Connection_parameters_request, "" },
+	{ "msc_LE_Ping", "cmd_req", msc_LE_Ping, "" },
+	{ "msc_Data_length_update", "cmd_req", msc_Data_length_update, "" },
+	{ "msc_PHY_update", "cmd_req", msc_PHY_update, "" },
+	{ "msc_Minimum_number_of_used_channels_request", "cmd_req", msc_Minimum_number_of_used_channels_request, "" },
+	{ "msc_LL_procedure_collision", "cmd_req", msc_LL_procedure_collision, "" },
+	{ "msc_Constant_Tone_Extension_Request", "cmd_req", msc_Constant_Tone_Extension_Request, "" },
+	{ "msc_Connected_Isochronous_Group_Setup", "cmd_req", msc_Connected_Isochronous_Group_Setup, "" },
+	{ "msc_Host_Rejects_Connected_Isochronous_Stream", "cmd_req", msc_Host_Rejects_Connected_Isochronous_Stream, "" },
+	{ "msc_Link_Layer_Rejects_Connected_Isochronous_Stream_1", "cmd_req", msc_Link_Layer_Rejects_Connected_Isochronous_Stream_1, "" },
+	{ "msc_Link_Layer_Rejects_Connected_Isochronous_Stream_2", "cmd_req", msc_Link_Layer_Rejects_Connected_Isochronous_Stream_2, "" },
+	{ "msc_Host_A_Terminates_Connected_Isochronous_Stream", "cmd_req", msc_Host_A_Terminates_Connected_Isochronous_Stream, "" },
+	{ "msc_ACL_disconnected", "cmd_req", msc_ACL_disconnected, "" },
+	{ "msc_Host_A_Removes_Connected_Isochronous_Group", "cmd_req", msc_Host_A_Removes_Connected_Isochronous_Group, "" },
+	{ "msc_Request_Sleep_Clock_Accuracy", "cmd_req", msc_Request_Sleep_Clock_Accuracy, "" },
+	{ "msc_Power_Control", "cmd_req", msc_Power_Control, "" },
+	{ "msc_Data_path_setup_for_a_music_stream_over_a_CIS", "cmd_req", msc_Data_path_setup_for_a_music_stream_over_a_CIS, "" },
+	{ "msc_Data_path_setup_for_bidirectional_voice_over_a_CIS", "cmd_req", msc_Data_path_setup_for_bidirectional_voice_over_a_CIS, "" },
+	{ "msc_Modifying_the_subrate_of_a_connection", "cmd_req", msc_Modifying_the_subrate_of_a_connection, "" },
+	{ "msc_Channel_Classification_Enable", "cmd_req", msc_Channel_Classification_Enable, "" },
+	{ "msc_Channel_Classification_Reporting", "cmd_req", msc_Channel_Classification_Reporting, "" },
+	{ "msc_Periodic_advertising_sync_transfer", "cmd_req", msc_Periodic_advertising_sync_transfer, "" },
+	{ "msc_Transfer_by_scanner_reports_initially_disabled", "cmd_req", msc_Transfer_by_scanner_reports_initially_disabled, "" },
+	{ "msc_Transfer_by_scanner_reports_initially_enabled", "cmd_req", msc_Transfer_by_scanner_reports_initially_enabled, "" },
+	{ "msc_Transfer_by_the_advertiser", "cmd_req", msc_Transfer_by_the_advertiser, "" },
+	{ "msc_Synchronization_state", "cmd_req", msc_Synchronization_state, "" },
+	{ "msc_Synchronizing_with_a_Broadcast_Isochronous_Group", "cmd_req", msc_Synchronizing_with_a_Broadcast_Isochronous_Group, "" },
+	{ "msc_Terminate_Synchronization_with_a_BIG", "cmd_req", msc_Terminate_Synchronization_with_a_BIG, "" },
+	{ "msc_New_Channel_Map_for_Broadcast_Isochronous_Group", "cmd_req", msc_New_Channel_Map_for_Broadcast_Isochronous_Group, "" },
+	{ "msc_Lost_Synchronization_with_a_Broadcast_Isochronous_Group", "cmd_req", msc_Lost_Synchronization_with_a_Broadcast_Isochronous_Group, "" },
+	{ "msc_Data_path_setup_for_a_BIS", "cmd_req", msc_Data_path_setup_for_a_BIS, "" },
 #endif //if 0
 	{ } },
 };
