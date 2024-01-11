@@ -1695,18 +1695,18 @@ typedef struct {
 #define LE_READ_SUPPORTED_STATES_RP_SIZE 9
 
 #define OCF_LE_RECEIVER_TEST			0x001D
-#define OCF_LE_Receiver_Test_v1 0x001D
+#define OCF_LE_RECEIVER_TEST_V1 0x001D
 typedef struct {
 	uint8_t		frequency;
 } __attribute__ ((packed)) le_receiver_test_cp;
 #define LE_RECEIVER_TEST_CP_SIZE 1
-#define OCF_LE_Receiver_Test_v2 0x0033
+#define OCF_LE_RECEIVER_TEST_V2 0x0033
 typedef struct {
 	uint8_t		frequency;
     uint8_t     phy;
     uint8_t     modulation_index;
 } __attribute__ ((packed)) le_receiver_test_v2_cp;
-#define OCF_LE_Receiver_Test_v3 0x004F
+#define OCF_LE_RECEIVER_TEST_V3 0x004F
 typedef struct {
 	uint8_t		frequency;
     uint8_t     phy;
@@ -1793,7 +1793,7 @@ typedef struct {
 } __attribute__ ((packed)) le_remote_connection_parameter_request_negative_reply_rp;
 #define LE_REMOTE_CONNECTION_PARAMETER_REQUEST_NEGATIVE_REPLY_RP_SIZE 3
 
-#define OCF_LE_SET_DATA_EENGTH 0x0022
+#define OCF_LE_SET_DATA_LENGTH 0x0022
 typedef struct {
 	uint16_t	conn_handle;
 	uint16_t	tx_octets;
@@ -1896,7 +1896,7 @@ typedef struct {
 #define LE_SET_ADDRESS_RESOLUTION_ENABLE_CP_SIZE 1
 
 
-#define OCF_LE_SET_RESOLVABLE_PRIVATE_ADDRESS_TIMEOUT 002E
+#define OCF_LE_SET_RESOLVABLE_PRIVATE_ADDRESS_TIMEOUT 0x002E
 typedef struct {
 	uint8_t		rpa_timeout;
 } __attribute__ ((packed)) le_set_resolvable_private_address_timeout_cp;
@@ -1914,8 +1914,7 @@ typedef struct {
 
 #define OCF_LE_READ_PHY 0x0030
 typedef struct {
-    uint8_t     status;
-    uint16_t    Connection_Handle;
+    uint16_t    connection_handle;
 } __attribute__ ((packed)) le_read_phy_cp;
 #define LE_READ_PHY_CP_SIZE 3
 
@@ -2135,6 +2134,8 @@ typedef struct {
 typedef struct {
     uint8_t     advertising_handle;
     uint8_t     subevent;
+    uint8_t     initiator_filter_policy;
+    uint8_t     own_address_type;
     uint8_t     peer_address_type;
     bdaddr_t    peer_address;
     uint8_t     initiating_phys;
@@ -2146,7 +2147,7 @@ typedef struct {
     uint16_t    supervision_timeout[1];
     uint16_t    min_ce_length[1];
     uint16_t    max_ce_length[1];
-} __attribute__ ((packed)) le_set_extended_scan_enable_v2s_cp;
+} __attribute__ ((packed)) le_set_extended_scan_enable_v2_cp;
 #define LE_SET_EXTENDED_SCAN_ENABLE_V1_CP2_SIZE 38
 
 #define OCF_LE_PERIODIC_ADVERTISING_CREATE_SYNC 0x0044
@@ -2209,13 +2210,13 @@ typedef struct {
 	uint8_t		status;
 	uint16_t		RF_TX_Path_Compensation_Value;
     uint16_t     RF_RX_Path_Compensation_Value;
-} __attribute__ ((packed)) LE_READ_RF_PATH_COMPENSATION_rp;
+} __attribute__ ((packed)) le_read_rf_path_compensation_rp;
 #define LE_READ_RF_PATH_COMPENSATION_RP_SIZE 5
 
 #define OCF_LE_WRITE_RF_PATH_COMPENSATION 0x004D
 typedef struct {
-	uint16_t	RF_TX_Path_Compensation_Value;
-    uint16_t    RF_RX_Path_Compensation_Value;
+	uint16_t	rf_tx_path_compensation_value;
+    uint16_t    rf_rx_path_compensation_value;
 } __attribute__ ((packed)) le_write_rf_path_compensation_cp;
 #define LE_WRITE_RF_PATH_COMPENSATION_CP  4
 
@@ -2233,7 +2234,7 @@ typedef struct {
     uint8_t     cte_length;
     uint8_t     cte_type;
     uint8_t     cte_count;
-    uint8_t     switching_pattern_length ;
+    uint8_t     switching_pattern_length;
     uint8_t     antenna_ids[1];
 } __attribute__ ((packed)) set_connectionless_cte_transmit_parameters_cp;
 #define LE_SET_CONNECTIONLESS_CTE_TRANSMIT_PARAMETERS_CP_SIZE 6
@@ -2412,8 +2413,8 @@ typedef struct {
 #define OCF_LE_SET_CIG_PARAMETERS 0x0062
 typedef struct {
     uint8_t     cig_id;
-    uint8_t     sdu_interval_c_to_p[3];
-    uint8_t     sdu_interval_p_to_c[3];
+    uint24_t    sdu_interval_c_to_p;
+    uint24_t    sdu_interval_p_to_c;
     uint8_t     worst_case_sca;
     uint8_t     packing;
     uint8_t     framing;
@@ -2440,8 +2441,8 @@ typedef struct {
 #define OCF_LE_SET_CIG_PARAMETERS_TEST 0x0063
 typedef struct {
     uint8_t     cig_id;
-    uint8_t     sdu_interval_c_to_p[3];
-    uint8_t     sdu_interval_p_to_c[3];
+    uint24_t    sdu_interval_c_to_p;
+    uint24_t    sdu_interval_p_to_c;
     uint8_t     ft_c_to_p;
     uint8_t     ft_p_to_c;
     uint16_t    iso_interval;
@@ -2492,8 +2493,8 @@ typedef struct {
 #define OCF_LE_ACCEPT_CIS_REQUEST 0x0066
 typedef struct {
     uint16_t     connection_handle;
-} __attribute__ ((packed)) le_accept_cis_request_rp;
-#define LE_ACCEPT_CIS_REQUEST_RP_SIZE 2
+} __attribute__ ((packed)) le_accept_cis_request_cp;
+#define LE_ACCEPT_CIS_REQUEST_CP_SIZE 2
 
 #define OCF_LE_REJECT_CIS_REQUEST 0x0067
 typedef struct {
@@ -2512,7 +2513,7 @@ typedef struct {
     uint8_t     big_handle;
     uint8_t     advertising_handle;
     uint8_t     num_bis;
-    uint8_t     sdu_interval[3];
+    uint24_t    sdu_interval;
     uint16_t    max_sdu;
     uint16_t    max_transport_latency;
     uint8_t     rtn;
@@ -2529,7 +2530,7 @@ typedef struct {
     uint8_t     big_handle;
     uint8_t     advertising_handle;
     uint8_t     num_bis;
-    uint8_t     sdu_interval[3];
+    uint24_t    sdu_interval;
     uint16_t    iso_interval;
     uint8_t     nse;
     uint16_t    max_sdu;
@@ -2585,6 +2586,12 @@ typedef struct {
 #define OCF_LE_SETUP_ISO_DATA_PATH 0x006E
 typedef struct {
     uint16_t    connection_handle;
+    uint8_t     data_path_direction;
+    uint8_t     data_path_id;
+    uint8_t     codec_id[5];
+    uint24_t    controller_delay;
+    uint8_t     codec_configuration_length;
+    uint8_t     codec_configuration[1];
 } __attribute__ ((packed)) le_setup_iso_data_path;
 #define LE_SETUP_ISO_DATA_PATH_SIZE   2
 typedef struct {
@@ -2602,7 +2609,7 @@ typedef struct {
 typedef struct {
     uint8_t      status;
     uint16_t     connection_handle;
-} __attribute__ ((packed)) le_remove_iso_data_path_p;
+} __attribute__ ((packed)) le_remove_iso_data_path_rp;
 #define LE_REMOVE_ISO_DATA_PATH_RP_SIZE   3
 
 #define OCF_LE_ISO_TRANSMIT_TEST 0x0070
@@ -2632,7 +2639,6 @@ typedef struct {
 #define OCF_LE_ISO_READ_TEST_COUNTERS 0x0072
 typedef struct {
     uint16_t    connection_handle;
-    uint8_t     payload_type;
 } __attribute__ ((packed)) le_iso_read_test_counters_cp;
 #define LE_ISO_READ_TEST_COUNTERS_CP_SIZE   3
 typedef struct {
@@ -2712,11 +2718,11 @@ typedef struct {
 #define OCF_LE_SET_PATH_LOSS_REPORTING_PARAMETERS 0x0078
 typedef struct {
     uint16_t    connection_handle;
-    uint8_t     High_Threshold;
-    uint8_t     High_Hysteresis;
-    uint8_t     Low_Threshold;
-    uint8_t     Low_Hysteresis;
-    uint16_t    Min_Time_Spent;
+    uint8_t     high_threshold;
+    uint8_t     high_hysteresis;
+    uint8_t     low_threshold;
+    uint8_t     low_hysteresis;
+    uint16_t    min_time_spent;
 } __attribute__ ((packed)) le_set_path_loss_reporting_parameters_cp;
 #define LE_SET_PATH_LOSS_REPORTING_PARAMETERS_CP_SIZE   8
 
@@ -2753,8 +2759,8 @@ typedef struct {
 
 #define OCF_LE_SET_DATA_RELATED_ADDRESS_CHANGES 0x007C
 typedef struct {
-    uint8_t     Advertising_Handle;
-    uint8_t     Change_Reasons;
+    uint8_t     advertising_handle;
+    uint8_t     change_reasons;
 } __attribute__ ((packed)) le_set_data_related_address_changes_cp;
 #define LE_SET_DATA_RELATED_ADDRESS_CHANGES_CP_SIZE   2
 
