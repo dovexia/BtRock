@@ -2782,6 +2782,7 @@ int hci_write_link_supervision_timeout(int dd, uint16_t handle,
 	memset(&rq, 0, sizeof(rq));
 	rq.ogf    = OGF_HOST_CTL;
 	rq.ocf    = OCF_WRITE_LINK_SUPERVISION_TIMEOUT;
+    rq.event  = EVT_CMD_COMPLETE;
 	rq.cparam = &cp;
 	rq.clen   = WRITE_LINK_SUPERVISION_TIMEOUT_CP_SIZE;
 	rq.rparam = &rp;
@@ -3145,30 +3146,3219 @@ int hci_le_read_remote_features(int dd, uint16_t handle, uint8_t *features, int 
 	return 0;
 }
 
-int hci_write_event_mask(int dd, uint8_t *mask, uint8_t len, int to)
+/* Start hci le command apis*/
+/* for HCI command, the parameter should match the size of each parameter, and api will not check the avliable of parameter
+ * this is little risk.*/
+static int devfd, timeout = 1000;
+void hci_set_device_fd(int dd)
 {
-	evt_le_read_remote_used_features_complete rp;
-	le_read_remote_used_features_cp cp;
-	struct hci_request rq;
+    devfd = dd;
+}
 
-	memset(&rq, 0, sizeof(rq));
+void hci_clear_device_fd(int dd)
+{
+    devfd = 0;
+}
+
+int hci_le_cmd_set_event_mask(uint8_t * mask)
+{
+	uint8_t status = -1;
+	le_set_event_mask_cp cp;
+	struct hci_request rq;
 
 	rq.ogf    = OGF_LE_CTL;
 	rq.ocf    = OCF_LE_SET_EVENT_MASK;
-	rq.cparam = &mask;
-	rq.clen   = len;
-	rq.rparam = &rp;
-	rq.rlen = sizeof(rp);
 
-	if (hci_send_req(dd, &rq, to) < 0)
+    memcpy(cp.mask, mask, LE_SET_EVENT_MASK_CP_SIZE);
+	rq.event  = 0;
+    rq.cparam = &cp;
+	rq.clen   = sizeof(cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
 		return -1;
 
-	if (rp.status) {
-		errno = EIO;
-		return -1;
-	}
+	return status;
+}
 
-	return 0;
+int hci_le_cmd_read_buffer_size(le_read_buffer_size_rp* reply)
+{
+	uint8_t status = -1;
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_BUFFER_SIZE;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_buffer_size_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+}
+
+int hci_le_cmd_read_buffer_size_v2(le_read_buffer_size_v2_rp* reply)
+{
+	uint8_t status = -1;
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_BUFFER_SIZE_V2;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_buffer_size_v2_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+}
+
+int hci_le_cmd_read_local_supported_features(le_read_local_supported_features_rp * reply)
+{
+	uint8_t status = -1;
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_LOCAL_SUPPORTED_FEATURES;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_local_supported_features_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+}
+
+int hci_le_cmd_set_random_address(bdaddr_t * p_bdaddr)
+{
+	uint8_t status = -1;
+    le_set_random_address_cp cmd_param;
+	struct hci_request rq;
+
+    memcpy(&cmd_param.bdaddr, p_bdaddr, sizeof(bdaddr_t));
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_RANDOM_ADDRESS;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_set_advertising_parameters(uint16_t min_interval, uint16_t max_interval, uint8_t advtype, uint8_t own_bdaddr_type,
+            uint8_t direct_bdaddr_type, bdaddr_t * direct_bdaddr, uint8_t chan_map, uint8_t filter)
+{
+	uint8_t status = -1;
+    le_set_advertising_parameters_cp cmd_param;
+	struct hci_request rq;
+
+    cmd_param.min_interval = min_interval;
+    cmd_param.max_interval = max_interval;
+    cmd_param.advtype = advtype;
+    cmd_param.own_bdaddr_type = own_bdaddr_type;
+    cmd_param.direct_bdaddr_type = direct_bdaddr_type;
+    memcpy(&cmd_param.direct_bdaddr, direct_bdaddr, sizeof(bdaddr_t));
+    cmd_param.chan_map = chan_map;
+    cmd_param.filter = filter;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_ADVERTISING_PARAMETERS;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_read_advertising_physical_channel_tx_power(le_read_advertising_channel_tx_power_rp * reply)
+{
+	uint8_t status = -1;
+	struct hci_request rq;
+
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_ADVERTISING_PARAMETERS;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_advertising_channel_tx_power_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_set_advertising_data(uint8_t length, uint8_t	* data)
+{
+	uint8_t status = -1;
+    le_set_advertising_data_cp cmd_param;
+	struct hci_request rq;
+    cmd_param.length = length;
+    memcpy(&cmd_param.data, data, length);
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_RESPONSE_DATA;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = length + 1;  //length and data
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_set_scan_response_data(uint8_t length, uint8_t * data)
+{
+	uint8_t status = -1;
+    le_set_scan_response_data_cp cmd_param;
+	struct hci_request rq;
+
+    cmd_param.length = length;
+    memcpy(&cmd_param.data, data, length);
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_RESPONSE_DATA;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = length + 1;  //length and data
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_set_advertising_enable(uint8_t enable)
+{
+	uint8_t status = -1;
+    le_set_advertise_enable_cp cmd_param;
+	struct hci_request rq;
+
+    cmd_param.enable = enable;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_ADVERTISE_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_set_scan_parameters(uint8_t type, uint16_t interval, uint16_t window, uint8_t own_bdaddr_type, uint8_t filter)
+{
+	uint8_t status = -1;
+    le_set_scan_parameters_cp cmd_param;
+	struct hci_request rq;
+
+    cmd_param.type = type;
+    cmd_param.interval = interval;
+    cmd_param.window = window;
+    cmd_param.own_bdaddr_type = own_bdaddr_type;
+    cmd_param.filter = filter;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_PARAMETERS;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_set_scan_enable(uint8_t enable, uint8_t filter_dup)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+	struct hci_request rq;
+
+    cmd_param.enable = enable;
+    cmd_param.filter_dup = filter_dup;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_create_connection(uint16_t interval, uint16_t window, uint8_t initiator_filter, uint8_t peer_bdaddr_type, bdaddr_t * peer_bdaddr,
+            uint8_t own_bdaddr_type, uint16_t min_interval, uint16_t max_interval, uint16_t latency, uint16_t supervision_timeout,
+            uint16_t min_ce_length, uint16_t max_ce_length)
+{
+	uint8_t status = -1;
+    le_create_connection_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+    cmd_param.interval = interval;
+    cmd_param.window = window;
+    cmd_param.initiator_filter = initiator_filter;
+    cmd_param.peer_bdaddr_type = peer_bdaddr_type;
+    memcpy(&cmd_param.peer_bdaddr, peer_bdaddr, sizeof(bdaddr_t));
+    cmd_param.own_bdaddr_type = own_bdaddr_type;
+    cmd_param.min_interval = min_interval;
+    cmd_param.max_interval = max_interval;
+    cmd_param.latency = latency;
+    cmd_param.supervision_timeout = supervision_timeout;
+    cmd_param.min_ce_length = min_ce_length;
+    cmd_param.max_ce_length = max_ce_length;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_CREATE_CONN;
+
+	//An HCI_LE_Connection_Complete or HCI_LE_Enhanced_Connection_Complete event
+    rq.event  = EVT_LE_CONN_COMPLETE;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = NULL;
+	rq.rlen = 0;
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+}
+
+int hci_le_cmd_create_connection_cancel(void)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_CREATE_CONN_CANCEL;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_filter_accept_list_size(le_read_white_list_size_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_FILTER_ACCEPT_SIZE;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_white_list_size_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_clear_filter_accept_list(void)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_CLEAR_FILTER_ACCEPT_LIST;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_add_device_to_filter_accept_list(uint8_t bdaddr_type, bdaddr_t * bdaddr)
+{
+	uint8_t status = -1;
+    le_add_device_to_white_list_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.bdaddr_type= bdaddr_type;
+	memcpy(&cmd_param.bdaddr, bdaddr, sizeof(bdaddr_t));
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_remove_device_from_filter_accept_list(uint8_t bdaddr_type, bdaddr_t * bdaddr)
+{
+	uint8_t status = -1;
+    le_remove_device_from_white_list_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.bdaddr_type= bdaddr_type;
+	memcpy(&cmd_param.bdaddr, bdaddr, sizeof(bdaddr_t));	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = LE_REMOVE_DEVICE_FROM_WHITE_LIST_CP_SIZE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_connection_update(uint16_t handle, uint16_t min_interval, uint16_t max_interval, uint16_t latency,
+            uint16_t supervision_timeout, uint16_t min_ce_length, uint16_t max_ce_length)
+{
+	uint8_t status = -1;
+    le_connection_update_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.handle = handle;
+	cmd_param.min_interval = min_interval;
+	cmd_param.max_interval = max_interval;
+	cmd_param.latency = latency;
+	cmd_param.supervision_timeout =	supervision_timeout;
+	cmd_param.min_ce_length = min_ce_length;
+	cmd_param.max_ce_length = max_ce_length;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_CONN_UPDATE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = NULL;
+	rq.rlen = 0;
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_host_channel_classification(uint8_t * map)
+{
+	uint8_t status = -1;
+    le_set_host_channel_classification_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	memcpy(&cmd_param.map, map, 5);
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_HOST_CHANNEL_CLASSIFICATION;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_channel_map(uint16_t handle, le_read_channel_map_rp * reply)
+{
+	uint8_t status = -1;
+    le_read_channel_map_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.handle = handle;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_CHANNEL_MAP;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_channel_map_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+/* When the Controller receives the HCI_LE_Read_Remote_Features command,
+the Controller shall send the HCI_Command_Status event to the Host. When
+the Controller has completed the procedure to determine the remote features
+or has determined that it will be using a cached copy, the Controller shall send
+an HCI_LE_Read_Remote_Features_Complete event to the Host.
+The HCI_LE_Read_Remote_Features_Complete event contains the status of
+this command and the parameter describing the features used on the
+connection and the features supported by the remote device.
+*/
+int hci_le_cmd_read_remote_features(uint16_t handle, evt_read_remote_features_complete * event)
+{
+	uint8_t status = -1;
+    le_read_remote_used_features_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.handle = handle;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_REMOTE_USED_FEATURES;
+
+	rq.event  = EVT_READ_REMOTE_FEATURES_COMPLETE;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = event;
+	rq.rlen = sizeof(evt_read_remote_features_complete);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_encrypt(	uint8_t * key, uint8_t * plaintext, le_encrypt_rp * reply)
+{
+	uint8_t status = -1;
+    le_encrypt_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	memcpy(cmd_param.key, key, 16);
+	memcpy(cmd_param.plaintext, plaintext, 16);
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_ENCRYPT;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(cmd_param);
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_encrypt_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_rand(le_rand_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_RAND;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_rand_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_enable_encryption(uint16_t handle, uint64_t random, uint16_t diversifier, uint8_t * key)
+{
+	uint8_t status = -1;
+    le_start_encryption_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.handle = handle;
+	cmd_param.random = random,
+	cmd_param.diversifier = diversifier;
+	memcpy(cmd_param.key, key, 16);  //key is long term key
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_START_ENCRYPTION;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_long_term_key_request_reply(uint16_t handle, uint8_t * key, le_ltk_reply_rp * reply)
+{
+	uint8_t status = -1;
+    le_ltk_reply_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.handle = handle;
+	memcpy(cmd_param.key, key ,16);
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_LTK_REPLY;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_ltk_reply_cp);
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_ltk_reply_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_long_term_key_request_negative_reply(uint16_t handle, le_ltk_neg_reply_rp * reply)
+{
+	uint8_t status = -1;
+    le_ltk_neg_reply_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.handle = handle;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_LTK_NEG_REPLY;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_ltk_neg_reply_cp);
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_ltk_neg_reply_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_read_supported_states(le_read_supported_states_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_SUPPORTED_STATES;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_supported_states_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_receiver_test_v1(uint8_t frequency)
+{
+	uint8_t status = -1;
+    le_receiver_test_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	cmd_param.frequency = frequency;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_RECEIVER_TEST;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_receiver_test_v2(uint8_t frequency, uint8_t phy, uint8_t modulation_index)
+{
+	uint8_t status = -1;
+    le_receiver_test_v2_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.frequency = frequency;
+	cmd_param.phy = phy;
+	cmd_param.modulation_index = modulation_index;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_RECEIVER_TEST_V2;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_receiver_test_v2_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_receiver_test_v3(uint8_t frequency, uint8_t phy, uint8_t modulation_index, uint8_t expected_cte_length,
+            uint8_t expected_cte_type, uint8_t slot_durations, uint8_t switching_pattern_length, uint8_t *antenna_ids)
+{
+	uint8_t status = -1;
+    le_receiver_test_v3_cp * p_cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	p_cmd_param = (le_receiver_test_v3_cp*)malloc(sizeof(le_receiver_test_v3_cp) + switching_pattern_length);
+	p_cmd_param->frequency =frequency;
+	p_cmd_param->phy = phy;
+	p_cmd_param->modulation_index = modulation_index;
+	p_cmd_param->expected_cte_length = expected_cte_length;
+	p_cmd_param->expected_cte_type = expected_cte_length;
+	p_cmd_param->slot_durations = slot_durations;
+	p_cmd_param->switching_pattern_length = switching_pattern_length;
+	memcpy(p_cmd_param->antenna_ids, antenna_ids, switching_pattern_length);
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_RECEIVER_TEST_V3;
+
+	rq.event  = 0;
+    rq.cparam = p_cmd_param;
+	rq.clen   = sizeof(le_receiver_test_v3_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_transmitter_test_v1(uint8_t frequency, uint8_t length, uint8_t payload)
+{
+	uint8_t status = -1;
+    le_transmitter_test_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.frequency = frequency;
+	cmd_param.length = length;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_TRANSMITTER_TEST;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_transmitter_test_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_transmitter_test_v2(uint8_t frequency, uint8_t length, uint8_t payload, uint8_t phy)
+{
+	uint8_t status = -1;
+    le_transmitter_test_v2_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.frequency = frequency;
+	cmd_param.length = length;
+	cmd_param.payload = payload;
+	cmd_param.phy = phy;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_TRANSMITTER_TEST_V2;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_transmitter_test_v2_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_transmitter_test_v3(uint8_t frequency, uint8_t length, uint8_t payload, uint8_t phy,uint8_t cte_length,
+            uint8_t cte_type, uint8_t switching_pattern_length, uint8_t * antenna_ids)
+{
+	uint8_t status = -1;
+    le_transmitter_test_v3_cp * p_cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	p_cmd_param->frequency = frequency;
+	p_cmd_param->length = length;
+	p_cmd_param->payload = payload;
+	p_cmd_param->phy = phy;
+	p_cmd_param->cte_length = cte_length;
+	p_cmd_param->cte_type = cte_type;
+	p_cmd_param->switching_pattern_length = switching_pattern_length;
+	memcpy(p_cmd_param->antenna_ids, antenna_ids, switching_pattern_length);
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_TRANSMITTER_TEST_V3;
+
+	rq.event  = 0;
+    rq.cparam = p_cmd_param;
+	rq.clen   = sizeof(le_transmitter_test_v3_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_transmitter_test_v4(uint8_t frequency, uint8_t length, uint8_t payload, uint8_t phy, uint8_t cte_length,
+            uint8_t cte_type, uint8_t switching_pattern_length, uint8_t * antenna_ids, uint8_t tx_power_level)
+{
+	uint8_t status = -1;
+    le_transmitter_test_v4_cp * p_cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	p_cmd_param->frequency = frequency;
+	p_cmd_param->length = length;
+	p_cmd_param->payload = payload;
+	p_cmd_param->phy = phy;
+	p_cmd_param->cte_length = cte_length;
+	p_cmd_param->cte_type = cte_type;
+	p_cmd_param->switching_pattern_length = switching_pattern_length;
+	memcpy(p_cmd_param->antenna_ids, antenna_ids, switching_pattern_length);
+	p_cmd_param->tx_power_level = tx_power_level;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_TRANSMITTER_TEST_V4;
+
+	rq.event  = 0;
+    rq.cparam = p_cmd_param;
+	rq.clen   = sizeof(le_transmitter_test_v4_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_test_end(le_test_end_rp * reply)
+{
+	uint8_t status = -1;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_TEST_END;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_test_end_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_remote_connection_parameter_request_replycommand(uint16_t connection_handle, uint16_t interval_min, uint16_t interval_max,
+            uint16_t max_latency, uint16_t timeout, uint16_t min_ce_length, uint16_t max_ce_length)
+{
+	uint8_t status = -1;
+    le_remote_connection_parameter_request_reply_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.connection_handle = connection_handle;
+	cmd_param.interval_min = interval_min;
+	cmd_param.interval_max = interval_max;
+	cmd_param.max_latency = max_latency;
+	cmd_param.timeout = timeout;
+	cmd_param.min_ce_length = min_ce_length;
+	cmd_param.max_ce_length = max_ce_length;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_REMOTE_CONNECTION_PARAMETER_REQUEST_REPLY;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_remote_connection_parameter_request_reply_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_remote_connection_parameter_request_negativereply(uint16_t connection_handle, uint8_t reason,
+            le_remote_connection_parameter_request_negative_reply_rp * reply)
+{
+	uint8_t status = -1;
+    le_remote_connection_parameter_request_negative_reply_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.connection_handle = connection_handle;
+	cmd_param.reason = reason;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_REMOTE_CONNECTION_PARAMETER_REQUEST_NEGATIVE_REPLY;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_remote_connection_parameter_request_negative_reply_cp);
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_remote_connection_parameter_request_negative_reply_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_set_data_length(uint16_t conn_handle, uint16_t tx_octets, uint16_t tx_time, le_set_data_length_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_data_length_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.conn_handle = conn_handle;
+	cmd_param.tx_octets = tx_octets;
+	cmd_param.tx_time = tx_time;
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_DATA_LENGTH;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_data_length_cp);
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_set_data_length_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_read_suggested_default_data_length(le_read_suggested_default_data_length_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_SUGGESTED_DEFAULT_DATA_LENGTH;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_suggested_default_data_length_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_write_suggested_default_data_length(uint16_t suggest_max_tx_octets, uint16_t suggest_max_tx_time)
+{
+	uint8_t status = -1;
+    le_write_suggest_default_data_length_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.suggest_max_tx_octets = suggest_max_tx_octets;
+	cmd_param.suggest_max_tx_time = suggest_max_tx_time;
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_WRITE_SUGGESTED_DEFAULT_DATA_LENGTH;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_write_suggest_default_data_length_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_local_p256_public_key(void)
+{
+	uint8_t status = -1;
+    le_generate_dhkey_v1_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	evt_le_read_local_p_256_public_key_complete event;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_LOCAL_P_256_PUBLIC_KEY;
+
+	rq.event  = EVT_LE_READ_LOCAL_P_256_PUBLIC_KEY_COMPLETE;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = &event;
+	rq.rlen = sizeof(evt_le_read_local_p_256_public_key_complete);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return event.status;
+
+}
+
+int hci_le_cmd_generate_dhkey_v1(uint8_t * key_x_coordinate, uint8_t * key_y_coordinate)
+{
+	uint8_t status = -1;
+    le_generate_dhkey_v1_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	memcpy(cmd_param.key_x_coordinate, key_x_coordinate, 32);
+	memcpy(cmd_param.key_y_coordinate, key_y_coordinate, 32);
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_GENERATE_DHKEY;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_generate_dhkey_v1_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_generate_dhkey_v2(uint8_t * key_x_coordinate, uint8_t * key_y_coordinate, uint8_t key_type)
+{
+	uint8_t status = -1;
+    le_generate_dhkey_v2_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	memcpy(cmd_param.key_x_coordinate, key_x_coordinate, 32);
+	memcpy(cmd_param.key_y_coordinate, key_y_coordinate, 32);
+	cmd_param.key_type = key_type;
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_GENERATE_DHKEY_V2;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_generate_dhkey_v2_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_add_device_to_resolving_list(uint8_t bdaddr_type, bdaddr_t * bdaddr, uint8_t * peer_irk, uint8_t * local_irk)
+{
+	uint8_t status = -1;
+    le_add_device_to_resolv_list_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.bdaddr_type = bdaddr_type;
+	memcpy(&cmd_param.bdaddr, bdaddr, sizeof(bdaddr_t));
+	memcpy(cmd_param.peer_irk, peer_irk, 16);
+	memcpy(cmd_param.local_irk, local_irk, 16);
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_ADD_DEVICE_TO_RESOLV_LIST;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_add_device_to_resolv_list_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_remove_device_from_resolving_list(uint8_t bdaddr_type, bdaddr_t * bdaddr)
+{
+	uint8_t status = -1;
+    le_remove_device_from_resolv_list_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.bdaddr_type = bdaddr_type;
+	memcpy(&cmd_param.bdaddr, bdaddr, sizeof(bdaddr_t));
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_REMOVE_DEVICE_FROM_RESOLV_LIST;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_remove_device_from_resolv_list_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_clear_resolving_list(void)
+{
+	uint8_t status = -1;
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_CLEAR_RESOLV_LIST;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_resolving_list_size(le_read_resolv_list_size_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_resolv_list_size_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_read_peer_resolvable_address(uint8_t peer_identity_address_type, bdaddr_t * peer_identity_address,
+            le_read_local_resolvable_address_rp * reply)
+{
+	uint8_t status = -1;
+    le_read_local_resolvable_address_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.peer_identity_address_type = peer_identity_address_type;
+	memcpy(&cmd_param.peer_identity_address, peer_identity_address, sizeof(bdaddr_t));
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_PEER_RESOLVABLE_ADDRESS;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_local_resolvable_address(uint8_t peer_identity_address_type, bdaddr_t * peer_identity_address,
+            le_read_local_resolvable_address_rp * reply)
+{
+	uint8_t status = -1;
+    le_read_local_resolvable_address_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.peer_identity_address_type = peer_identity_address_type;
+	memcpy(&cmd_param.peer_identity_address, peer_identity_address, sizeof(bdaddr_t));
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_READ_LOCAL_RESOLVABLE_ADDRESS;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_read_local_resolvable_address_cp);
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_local_resolvable_address_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_set_address_resolution_enable(uint8_t enable)
+{
+	uint8_t status = -1;
+    le_set_address_resolution_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.enable = enable;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_ADDRESS_RESOLUTION_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_address_resolution_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_resolvable_private_address_timeout(uint8_t rpa_timeout)
+{
+	uint8_t status = -1;
+    le_set_resolvable_private_address_timeout_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+	cmd_param.rpa_timeout = rpa_timeout;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_RESOLVABLE_PRIVATE_ADDRESS_TIMEOUT;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_resolvable_private_address_timeout_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_maximum_data_length(le_read_maximum_data_length_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = NULL;
+	rq.clen   = 0;
+	rq.rparam = reply;
+	rq.rlen = sizeof(le_read_maximum_data_length_rp);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return reply->status;
+
+}
+
+int hci_le_cmd_read_phy(uint16_t connection_handle, le_read_phy_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_default_phy(uint8_t status, uint8_t tx_phy, uint8_t rx_phy)
+{
+	//uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_phy(uint16_t connection_handle, uint8_t all_phys, uint8_t tx_phys, uint8_t rx_phys, uint16_t phy_options)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_advertising_set_random_address(uint8_t advertising_handle, bdaddr_t * random_address)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_extended_advertising_parameters_v1(uint8_t advertising_handle, uint16_t advertising_event_properties,
+            uint24_t primary_advertising_interval_min, uint24_t primary_advertising_interval_max,
+            uint8_t primary_advertising_channel_map, uint8_t own_address_type,
+            uint8_t peer_address_type, bdaddr_t * peer_address,
+            uint8_t advertising_filter_policy, uint8_t advertising_tx_power,
+            uint8_t primary_advertising_phy, uint8_t secondary_advertising_max_skip,
+            uint8_t secondary_advertising_phy, uint8_t advertising_sid,
+            uint8_t scan_request_notification_enable, le_set_extended_advertising_parameters_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_extended_advertising_parameters_v2(uint8_t advertising_handle, uint16_t advertising_event_properties,
+            uint24_t primary_advertising_interval_min, uint24_t primary_advertising_interval_max,
+            uint8_t primary_advertising_channel_map, uint8_t own_address_type,
+            uint8_t peer_address_type, bdaddr_t * peer_address,
+            uint8_t advertising_filter_policy, uint8_t advertising_tx_power,
+            uint8_t primary_advertising_phy, uint8_t secondary_advertising_max_skip,
+            uint8_t secondary_advertising_phy, uint8_t advertising_sid,
+            uint8_t scan_request_notification_enable, uint8_t primary_advertising_phy_options,
+            uint8_t econdary_advertising_phy_options, le_set_extended_advertising_parameters_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_extended_advertising_data(uint8_t advertising_handle, uint8_t operation, uint8_t fragment_preference,
+            uint8_t advertising_data_length, uint8_t * advertising_data)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_extended_scan_response_data(uint8_t advertising_handle, uint8_t operation, uint8_t fragment_preference,
+            uint8_t can_response_data_length, uint8_t * scan_response_data)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_extended_advertising_enable(uint8_t enable, uint8_t num_sets,
+            uint8_t * advertising_handle, uint16_t * duration, uint8_t * max_extended_advertising_events)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_maximum_advertising_data_length(le_read_maximum_advertising_data_length_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_number_of_supported_advertising_sets(le_read_number_of_supported_advertising_sets_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_remove_advertising_set(uint8_t advertising_handle)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_clear_advertising_sets(void)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_advertising_parameters_v1(uint8_t advertising_handle, uint16_t periodic_advertising_interval_min,
+            uint16_t periodic_advertising_interval_max, uint16_t periodic_advertising_properties)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_advertising_parameters_v2(uint8_t advertising_handle, uint16_t periodic_advertising_interval_min,
+            uint16_t periodic_advertising_interval_max, uint16_t periodic_advertising_properties,
+            uint8_t num_subevents, uint8_t subevent_interval, uint8_t response_slot_delay,
+            uint8_t response_slot_spacing, uint8_t num_response_slots)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_advertising_data(uint8_t advertising_handle, uint8_t operation,
+            uint8_t advertising_data_length, uint8_t advertising_data)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_advertising_enable(uint8_t enable, uint8_t advertising_handle)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_extended_scan_parameters(uint8_t own_address_type, uint8_t scanning_filter_policy, uint8_t scanning_phys,
+            uint8_t * scan_type, uint16_t* scan_interval, uint16_t * scan_window)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_extended_scan_enable(uint8_t enable, uint8_t filter_duplicates, uint16_t duration, uint16_t period)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_extended_create_connection_v1(uint8_t initiator_filter_policy, uint8_t own_address_type, uint8_t peer_address_type,
+            bdaddr_t * peer_address, uint8_t initiating_phys, uint16_t * scan_interval, uint16_t * scan_window,
+            uint16_t * connection_interval_min, uint16_t * connection_interval_max, uint16_t * max_latency,
+            uint16_t * supervision_timeout, uint16_t * min_ce_length, uint16_t * max_ce_length)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_extended_create_connection_v2(uint8_t advertising_handle, uint8_t subevent,
+            uint8_t initiator_filter_policy, uint8_t own_address_type, uint8_t peer_address_type,
+            bdaddr_t * peer_address, uint8_t initiating_phys, uint16_t * scan_interval, uint16_t * scan_window,
+            uint16_t * connection_interval_min, uint16_t * connection_interval_max, uint16_t * max_latency,
+            uint16_t * supervision_timeout, uint16_t * min_ce_length, uint16_t * max_ce_length)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_periodic_advertising_create_sync(uint8_t options, uint8_t advertising_sid, uint8_t advertiser_address_type,
+            bdaddr_t * advertiser_address, uint16_t skip, uint16_t sync_timeout, uint8_t sync_cte_type)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_periodic_advertising_create_sync_cancel(void)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_periodic_advertising_terminate_sync(uint16_t sync_handle)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_add_device_to_periodic_advertiser_list(uint8_t advertiser_address_type, bdaddr_t * advertiser_address, uint8_t advertising_sid)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_remove_device_from_periodic_advertiser_list(uint8_t advertiser_address_type, bdaddr_t * advertiser_address, uint8_t advertising_sid)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_clear_periodic_advertiser_list(void)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_periodic_advertiser_list_size(le_read_periodic_advertiser_list_size_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_transmit_power(le_read_transmit_power_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_rf_path_compensation(le_read_rf_path_compensation_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_write_rf_path_compensation(uint16_t rf_tx_path_compensation_value, uint16_t rf_rx_path_compensation_value)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_privacy_mode(uint8_t peer_identity_address_type, bdaddr_t * peer_identity_address, uint8_t privacy_mode)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_connectionless_cte_transmit_parameters(uint8_t advertising_handle, uint8_t cte_length, uint8_t cte_type, uint8_t cte_count,
+            uint8_t switching_pattern_length, uint8_t * antenna_ids)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_connectionless_cte_transmit_enable(uint8_t advertising_handle, uint8_t cte_enable)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_connectionless_iq_sampling_enable(uint16_t ync_handle, uint8_t sampling_enable, uint8_t slot_durations,
+            uint8_t max_sampled_ctes, uint8_t switching_pattern_length, uint8_t * antenna_ids,
+            le_set_connectionless_iq_sampling_enable_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_connection_cte_receive_parameters(uint16_t connection_handle, uint8_t sampling_enable, uint8_t slot_durations,
+            uint8_t switching_pattern_length, uint8_t * antenna_ids, le_set_connection_cte_receive_parameters_rp reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_connection_cte_transmit_parameters(uint16_t connection_handle, uint8_t cte_types, uint8_t switching_pattern_length,
+            uint8_t antenna_ids, le_set_connection_cte_transmit_parameters_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_connection_cte_request_enable(uint16_t connection_handle, uint8_t enable, uint16_t cte_request_interval,
+            uint8_t requested_cte_length, uint8_t requested_cte_type, le_connection_cte_request_enable_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_connection_cte_response_enable(uint16_t connection_handl, uint8_t enable, le_connection_cte_response_enable_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_antenna_information(le_connection_cte_response_enable_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_advertising_receive_enable(uint16_t sync_handle, uint8_t enable)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_periodic_advertising_sync_transfer(uint16_t connection_handle, uint16_t service_data, uint16_t sync_handle,
+            le_periodic_advertising_sync_transfer_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_periodic_advertising_set_info_transfer(uint16_t connection_handle, uint16_t service_data, uint16_t sync_handle,
+            le_periodic_advertising_set_info_transfer_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_advertising_sync_transfer_parameters(uint16_t connection_handle, uint8_t mode, uint16_t skip,
+            uint16_t sync_timeout, uint8_t cte_type, le_set_periodic_advertising_sync_transfer_parameters_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_default_periodic_advertising_sync_transfer_parameters(uint8_t mode, uint16_t skip, uint16_t sync_timeout, uint8_t cte_type)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_modify_sleep_clock_accuracy(uint8_t action)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_iso_tx_sync(uint16_t connection_handle, le_read_iso_tx_sync_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_cig_parameters(uint8_t cig_id, uint24_t sdu_interval_c_to_p,uint24_t sdu_interval_p_to_c, uint8_t worst_case_sca,
+            uint8_t packing, uint8_t framing, uint16_t max_transport_latency_c_to_p, uint16_t max_transport_latency_p_to_c, uint8_t cis_count,
+            uint8_t * cis_id, uint8_t * max_sdu_c_to_p, uint8_t * max_sdu_p_to_c, uint8_t *  phy_c_to_p,
+            uint8_t * phy_p_to_c, uint8_t * rtn_c_to_p, uint8_t * rtn_p_to_c,
+            le_set_cig_parameters_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_cig_parameters_test(uint8_t cig_id, uint24_t sdu_interval_c_to_p, uint24_t sdu_interval_p_to_c, uint8_t ft_c_to_p,
+            uint8_t ft_p_to_c, uint16_t iso_interval, uint8_t worst_case_sca, uint8_t packing, uint8_t framing, uint8_t cis_count,
+            uint8_t * cis_id, uint8_t * nse, uint16_t *  max_sdu_c_to_p, uint16_t * max_sdu_p_to_c, uint16_t * max_pdu_c_to_p,
+            uint16_t * max_pdu_p_to_c, uint8_t * phy_c_to_p, uint8_t * phy_p_to_c, uint8_t * bn_c_to_p, uint8_t * bn_p_to_c,
+            le_set_cig_parameters_test_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_create_cis(uint8_t cis_count, uint16_t * cis_connection_handle, uint16_t * acl_connection_handle)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_remove_cig(uint8_t status, le_remove_cig_rp * reply)
+{
+	//uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_accept_cis_request(uint16_t connection_handle)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_reject_cis_request(uint16_t connection_handle, uint8_t reason, le_reject_cis_request_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_create_big(uint8_t big_handle, uint8_t advertising_handle, uint8_t num_bis, uint24_t sdu_interval, uint16_t max_sdu,
+            uint16_t max_transport_latency, uint8_t rtn, uint8_t phy, uint8_t packing, uint8_t framing, uint8_t encryption,
+            uint8_t * broadcast_code)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_create_big_test(uint8_t big_handl, uint8_t advertising_handle, uint8_t num_bis, uint24_t sdu_interval,
+            uint16_t iso_interval, uint8_t nse, uint16_t max_sdu, uint16_t max_pdu, uint8_t phy, uint8_t packing,
+            uint8_t framing, uint8_t bn, uint8_t irc, uint8_t pto, uint8_t encryption, uint8_t * broadcast_code)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_terminate_big(uint8_t big_handle, uint8_t reason)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_big_create_sync(uint8_t big_handle, uint16_t sync_handle, uint8_t encryption, uint8_t * broadcast_code,
+            uint8_t mse, uint16_t big_sync_timeout, uint8_t num_bis, uint8_t * bis)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_big_terminate_sync(uint8_t big_handle, le_big_terminate_sync_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_request_peer_sca(uint16_t connection_handle)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_setup_iso_data_path(uint16_t connection_handle, uint8_t data_path_direction, uint8_t data_path_id,
+            uint8_t * codec_id, uint24_t controller_delay, uint8_t codec_configuration_length, uint8_t * codec_configuration,
+            le_setup_iso_data_path_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_remove_iso_data_path(uint8_t status, uint16_t connection_handle, le_remove_iso_data_path_rp * reply)
+{
+	//uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_iso_transmit_test(uint16_t connection_handle, uint8_t payload_type, le_iso_transmit_test_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_iso_receive_test(uint16_t connection_handle, uint8_t payload_type, le_iso_receive_test_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_iso_read_test_counters(uint16_t connection_handle, le_iso_read_test_counters_cp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_iso_test_end(uint16_t connection_handle, le_iso_test_end_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_host_feature(uint8_t bit_number, uint8_t bit_value)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_iso_link_quality(uint16_t connection_handle, le_read_iso_link_quality_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_enhanced_read_transmit_power_level(uint16_t connection_handle, uint8_t phy, le_enhanced_read_transmit_power_level_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_read_remote_transmit_power_level(uint16_t connection_handle, uint8_t phy)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_path_loss_reporting_parameters(uint16_t connection_handle, uint8_t high_threshold, uint8_t high_hysteresis,
+            uint8_t low_threshold, uint8_t low_hysteresis, uint16_t min_time_spent, le_set_path_loss_reporting_parameters_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_path_loss_reporting_enable(uint8_t status, uint8_t enable, le_set_path_loss_reporting_enable_rp * reply)
+{
+	//uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_transmit_power_reporting_enable(uint8_t status, uint8_t local_enable, uint8_t remote_enable,
+            le_set_transmit_power_reporting_enable_rp * reply)
+{
+	//uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_data_related_address_changes(uint8_t advertising_handle, uint8_t change_reasons)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_default_subrate(uint16_t subrate_min, uint16_t subrate_max, uint16_t max_latency,
+            uint16_t continuation_number, uint16_t supervision_timeout)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_subrate_request(uint16_t connection_handle, uint16_t subrate_min, uint16_t subrate_max,
+            uint16_t max_latency, uint16_t continuation_number, uint16_t supervision_timeout)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_advertising_subevent_data(uint8_t advertising_handle, uint8_t num_subevents,
+            uint8_t * subevent, uint8_t * response_slot_start, uint8_t response_slot_count,
+            uint8_t ubevent_data_length, uint8_t * subevent_data,
+            le_set_periodic_advertising_subevent_data_rp * reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_advertising_response_data(uint16_t sync_handle, uint16_t request_event, uint8_t request_subevent,
+            uint8_t response_subevent, uint8_t response_slot, uint8_t response_data_length, uint8_t * response_data,
+            le_set_periodic_advertising_response_data_rp* reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
+}
+
+int hci_le_cmd_set_periodic_sync_subevent(uint16_t sync_handle, uint8_t periodic_advertising_properties,
+            uint8_t num_subevents, uint8_t * subevent, le_set_periodic_sync_subevent_rp* reply)
+{
+	uint8_t status = -1;
+    le_set_scan_enable_cp cmd_param;
+    //define rp if needed.
+	struct hci_request rq;
+
+	rq.ogf    = OGF_LE_CTL;
+	rq.ocf    = OCF_LE_SET_SCAN_ENABLE;
+
+	rq.event  = 0;
+    rq.cparam = &cmd_param;
+	rq.clen   = sizeof(le_set_scan_enable_cp);
+	rq.rparam = &status;
+	rq.rlen = sizeof(status);
+
+	if (hci_send_req(devfd, &rq, timeout) < 0)
+		return -1;
+
+	return status;
+
 }
 
 
@@ -3201,3 +6391,4 @@ int hci_write_common_cmd(int dd, uint16_t ogf, uint16_t ocf, uint32_t expect_eve
 	}
 	return 0;
 }
+/* Start hci le command apis*/
