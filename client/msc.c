@@ -923,74 +923,216 @@ void msc_advertising_using_adv_ext_ind(int argc, char **argvcmd_req)
     cfg_adv_handle = 1;
     msc_advertising_using_adv_ext_ind_start(cfg_use_random_addr, cfg_use_scan_rsp_data, cfg_adv_continuously, cfg_adv_handle);
 }
-void msc_scan_request_notifications(int argc, char **argvcmd_req)
+
+void msc_scan_request_notifications_start(uint8_t use_random_addr, uint8_t use_scan_rsp_data, uint8_t adv_continuously, uint8_t adv_handle)
 {
     uint8_t status = -1;
     bt_shell_printf("%s\n", __func__);
 
-    //LE set extended advertising parameters --scan_request_notification_enable is set
-    //LE set extended advertising Data
-    //LE set extended scan response data
     le_set_extended_advertising_parameters_v1_cp le_set_extended_advertising_parameters_v1_cmd_param;
-    //config the le_set_extended_advertising_parameters_v1_cmd_param
-    // ...
+    le_set_extended_advertising_parameters_rp le_set_extended_advertising_parameters_reply;
+
+    memset(&le_set_extended_advertising_parameters_v1_cmd_param, 0, sizeof(le_set_extended_advertising_parameters_v1_cmd_param));
+    le_set_extended_advertising_parameters_v1_cmd_param.advertising_handle = adv_handle;
+    le_set_extended_advertising_parameters_v1_cmd_param.advertising_event_properties = 0b00010011;
+    le_set_extended_advertising_parameters_v1_cmd_param.primary_advertising_interval_min.data[0] = 0x30;
+    le_set_extended_advertising_parameters_v1_cmd_param.primary_advertising_interval_min.data[1] = 0x00;
+    le_set_extended_advertising_parameters_v1_cmd_param.primary_advertising_interval_min.data[2] = 0x00;
+    le_set_extended_advertising_parameters_v1_cmd_param.primary_advertising_interval_max.data[0] = 0x00;
+    le_set_extended_advertising_parameters_v1_cmd_param.primary_advertising_interval_max.data[1] = 0x20;
+    le_set_extended_advertising_parameters_v1_cmd_param.primary_advertising_interval_max.data[2] = 0x00;
+    le_set_extended_advertising_parameters_v1_cmd_param.primary_advertising_channel_map = 0x07; //all 37, 38, 39 channel
+    le_set_extended_advertising_parameters_v1_cmd_param.own_address_type = use_random_addr;
+    le_set_extended_advertising_parameters_v1_cmd_param.peer_address_type = 0;
+    //if the peer address type is 0, not need set the peer address.
+    //le_set_extended_advertising_parameters_v1_cmd_param    peer_address;
+    le_set_extended_advertising_parameters_v1_cmd_param.advertising_filter_policy = 0;
+    le_set_extended_advertising_parameters_v1_cmd_param.advertising_tx_power = 0x7F; //Host has no preference, no specify the tx power.
+    le_set_extended_advertising_parameters_v1_cmd_param.primary_advertising_phy = 0x01; //use LE 1M
+    le_set_extended_advertising_parameters_v1_cmd_param.secondary_advertising_max_skip = 0x00;
+    le_set_extended_advertising_parameters_v1_cmd_param.secondary_advertising_phy = 0x01;   //use LE 1M
+    le_set_extended_advertising_parameters_v1_cmd_param.advertising_sid = 0x00; //SID
+    le_set_extended_advertising_parameters_v1_cmd_param.scan_request_notification_enable = 0x01; //Host not need to know the peer scan request.
 
 	if (hci_write_common_cmd(devfd, OGF_LE_CTL, OCF_LE_SET_EXTENDED_ADVERTISING_PARAMETERS, EVT_CMD_COMPLETE,
                                 (uint8_t *)&le_set_extended_advertising_parameters_v1_cmd_param, sizeof(le_set_extended_advertising_parameters_v1_cmd_param),
-								(uint8_t*)&status, sizeof(status),
+								(uint8_t*)&le_set_extended_advertising_parameters_reply, sizeof(le_set_extended_advertising_parameters_reply),
 								1000) < 0) {
-		bt_shell_printf("Can't hci_write_common_cmd on hci%d: %s (%d)\n",
+		bt_shell_printf("Can't OCF_LE_SET_EXTENDED_ADVERTISING_PARAMETERS on hci%d: %s (%d)\n",
 					hci_dev, strerror(errno), errno);
 		return;
 	}
-    bt_shell_printf("OCF_LE_SET_ADVERTISING_PARAMETERS status is 0x%x\n", status);
+    bt_shell_printf("OCF_LE_SET_EXTENDED_ADVERTISING_PARAMETERS status is 0x%x\n", status);
 
-    le_set_extended_advertising_data_cp le_set_extended_advertising_data_cmd_param;
+    status = -1;
+    if (use_random_addr) {
+        //check if the random address is need.
+        le_set_advertising_set_random_address_cp le_set_advertising_set_random_address_cmd_param;
+        //config the le_set_extended_advertising_parameters_v1_cmd_param
+        // ...
+        le_set_advertising_set_random_address_cmd_param.advertising_handle = adv_handle;  //should same as config param
+        le_set_advertising_set_random_address_cmd_param.random_address = local_random_addr;  //should same as config param
+        if (hci_write_common_cmd(devfd, OGF_LE_CTL, OCF_LE_SET_ADVERTISING_SET_RANDOM_ADDRESS, EVT_CMD_COMPLETE,
+                                    (uint8_t *)&le_set_advertising_set_random_address_cmd_param, sizeof(le_set_advertising_set_random_address_cmd_param),
+                                    (uint8_t*)&status, sizeof(status),
+                                    1000) < 0) {
+            bt_shell_printf("Can't OCF_LE_SET_ADVERTISING_SET_RANDOM_ADDRESS on hci%d: %s (%d)\n",
+                        hci_dev, strerror(errno), errno);
+            return;
+        }
+        bt_shell_printf("OCF_LE_SET_ADVERTISING_SET_RANDOM_ADDRESS status is 0x%x\n", status);
+    }
+
+    status = -1;
+    le_set_extended_advertising_data_cp * le_set_extended_advertising_data_cmd_param;
     //config the le_set_extended_advertising_data_cmd_param
     // ...
+    uint8_t adv_data_len = 0x17;
+    le_set_extended_advertising_data_cmd_param = (le_set_extended_advertising_data_cp*)malloc(sizeof(le_set_extended_advertising_data_cp) + adv_data_len);
+    uint8_t * padvertising_data = le_set_extended_advertising_data_cmd_param->advertising_data;
+    le_set_extended_advertising_data_cmd_param->advertising_handle = adv_handle;  //according to config param
+    le_set_extended_advertising_data_cmd_param->operation = 0x03;
+    le_set_extended_advertising_data_cmd_param->fragment_preference = 0x00;
+    le_set_extended_advertising_data_cmd_param->advertising_data_length = adv_data_len;    //the data array size.
+    // le_set_extended_advertising_data_cmd_param->advertising_data[0] = 0x06;   //ad length
+    // le_set_extended_advertising_data_cmd_param->advertising_data[1] = 0x00;   //ad type
+    // le_set_extended_advertising_data_cmd_param->advertising_data[2] = 'D';    //ad data
+    // le_set_extended_advertising_data_cmd_param->advertising_data[3] = 'o';
+    // le_set_extended_advertising_data_cmd_param->advertising_data[4] = 'v';
+    // le_set_extended_advertising_data_cmd_param->advertising_data[5] = 'e';
+    // le_set_extended_advertising_data_cmd_param->advertising_data[6] = '1';
+//8
+    *padvertising_data++ = 0x07; //manufacture specific
+    *padvertising_data++ = 0xFF;
+    *padvertising_data++ = 0x26;
+    *padvertising_data++ = 0x0A;
+    *padvertising_data++ = 't';
+    *padvertising_data++ = 'h';
+    *padvertising_data++ = 'v';
+    *padvertising_data++ = '3' + use_random_addr;
+//4
+    *padvertising_data++ = 0x03;
+    *padvertising_data++ = 0x03;
+    *padvertising_data++ = 0x0A;
+    *padvertising_data++ = 0x18;
+//11
+    *padvertising_data++ = 0x0A;
+    *padvertising_data++ = 0x09;
+    *padvertising_data++ = 'D';
+    *padvertising_data++ = 'o';
+    *padvertising_data++ = 'v';
+    *padvertising_data++ = 'e';
+    *padvertising_data++ = 'X';
+    *padvertising_data++ = 'i';
+    *padvertising_data++ = 'a';
+    *padvertising_data++ = '_';
+    *padvertising_data++ = '3';
 
 	if (hci_write_common_cmd(devfd, OGF_LE_CTL, OCF_LE_SET_EXTENDED_ADVERTISING_DATA, EVT_CMD_COMPLETE,
-                                (uint8_t *)&le_set_extended_advertising_data_cmd_param, sizeof(le_set_extended_advertising_data_cmd_param),
+                                (uint8_t *)le_set_extended_advertising_data_cmd_param, sizeof(le_set_extended_advertising_data_cp) + adv_data_len,
 								(uint8_t*)&status, sizeof(status),
 								1000) < 0) {
-		bt_shell_printf("Can't hci_write_common_cmd on hci%d: %s (%d)\n",
+		bt_shell_printf("Can't OCF_LE_SET_EXTENDED_ADVERTISING_DATA on hci%d: %s (%d)\n",
 					hci_dev, strerror(errno), errno);
 		return;
 	}
-    bt_shell_printf("OCF_LE_SET_ADVERTISING_PARAMETERS status is 0x%x\n", status);
+    bt_shell_printf("OCF_LE_SET_EXTENDED_ADVERTISING_DATA status is 0x%x\n", status);
 
-    le_set_extended_scan_response_data_cp le_set_extended_scan_response_data_cmd_param;
-    //config the le_set_extended_scan_response_data_cmd_param
-    // ...
+    if (use_scan_rsp_data) {
+        status = -1;
+        uint8_t adv_scan_response_len = 0x1A;
 
-	if (hci_write_common_cmd(devfd, OGF_LE_CTL, OCF_LE_SET_EXTENDED_SCAN_RESPONSE_DATA, EVT_CMD_COMPLETE,
-                                (uint8_t *)&le_set_extended_scan_response_data_cmd_param, sizeof(le_set_extended_scan_response_data_cmd_param),
-								(uint8_t*)&status, sizeof(status),
-								1000) < 0) {
-		bt_shell_printf("Can't hci_write_common_cmd on hci%d: %s (%d)\n",
-					hci_dev, strerror(errno), errno);
-		return;
-	}
-    bt_shell_printf("OCF_LE_SET_ADVERTISING_PARAMETERS status is 0x%x\n", status);
-    //LE set extended advertising enable
+        le_set_extended_scan_response_data_cp *le_set_extended_scan_response_data_cmd_param;
+        le_set_extended_scan_response_data_cmd_param = (le_set_extended_scan_response_data_cp*)malloc(sizeof(le_set_extended_scan_response_data_cp) + adv_scan_response_len);
+        uint8_t * pscan_response_data = le_set_extended_scan_response_data_cmd_param->scan_response_data;
+
+        le_set_extended_scan_response_data_cmd_param->advertising_handle = adv_handle;
+        le_set_extended_scan_response_data_cmd_param->operation = 0x03;
+        le_set_extended_scan_response_data_cmd_param->fragment_preference = 0x00;
+        le_set_extended_scan_response_data_cmd_param->scan_response_data_length = adv_scan_response_len;
+
+    //+7
+        *pscan_response_data++ = 0x06;
+        *pscan_response_data++ = 0x08;
+        *pscan_response_data++ = 'D';
+        *pscan_response_data++ = 'o';
+        *pscan_response_data++ = 'v';
+        *pscan_response_data++ = 'e';
+        *pscan_response_data++ = '5' + use_random_addr;
+    //+4
+        *pscan_response_data++ = 0x03;
+        *pscan_response_data++ = 0x03;
+        *pscan_response_data++ = 0x47;
+        *pscan_response_data++ = 0x18;
+    //+4
+        *pscan_response_data++ = 0x03;
+        *pscan_response_data++ = 0x0A;
+        *pscan_response_data++ = 0x00;
+        *pscan_response_data++ = 0x00;
+    //+11
+        *pscan_response_data++ = 0x0A;
+        *pscan_response_data++ = 0x09;
+        *pscan_response_data++ = 'D';
+        *pscan_response_data++ = 'o';
+        *pscan_response_data++ = 'v';
+        *pscan_response_data++ = 'e';
+        *pscan_response_data++ = 'X';
+        *pscan_response_data++ = 'i';
+        *pscan_response_data++ = 'a';
+        *pscan_response_data++ = '_';
+        *pscan_response_data++ = '5' + use_random_addr;
+
+
+        if (hci_write_common_cmd(devfd, OGF_LE_CTL, OCF_LE_SET_EXTENDED_SCAN_RESPONSE_DATA,	EVT_CMD_COMPLETE,
+                                    (uint8_t *)le_set_extended_scan_response_data_cmd_param, sizeof(le_set_extended_scan_response_data_cp) + adv_scan_response_len,
+                                    (uint8_t*)&status, sizeof(status),
+                                    1000) < 0) {
+            bt_shell_printf("Can't OCF_LE_SET_EXTENDED_SCAN_RESPONSE_DATA on hci%d: %s (%d)\n",
+                        hci_dev, strerror(errno), errno);
+            return;
+        }
+        bt_shell_printf("OCF_LE_SET_EXTENDED_SCAN_RESPONSE_DATA status is 0x%x\n", status);
+    }
+
+    status = -1;
     le_set_extended_advertising_enable_cp le_set_extended_advertising_enable_cmd_param;
     //config the le_set_extended_advertising_enable_cmd_param
-    // ...
+    // default Num_Sets is 1, so not need malloc for size change
 
+    le_set_extended_advertising_enable_cmd_param.enable = true;
+    le_set_extended_advertising_enable_cmd_param.num_sets = 1;
+    le_set_extended_advertising_enable_cmd_param.advertising_handle[0] = adv_handle;  // num_sets *1
+    le_set_extended_advertising_enable_cmd_param.duration[0] = 0x00;    // num_sets *1
+    le_set_extended_advertising_enable_cmd_param.max_extended_advertising_events[0] = 0x00;    //No maximum number of advertising events
 	if (hci_write_common_cmd(devfd, OGF_LE_CTL, OCF_LE_SET_EXTENDED_ADVERTISING_ENABLE, EVT_CMD_COMPLETE,
                                 (uint8_t *)&le_set_extended_advertising_enable_cmd_param, sizeof(le_set_extended_advertising_enable_cmd_param),
 								(uint8_t*)&status, sizeof(status),
 								1000) < 0) {
-		bt_shell_printf("Can't hci_write_common_cmd on hci%d: %s (%d)\n",
+		bt_shell_printf("Can't OCF_LE_SET_EXTENDED_ADVERTISING_ENABLE on hci%d: %s (%d)\n",
 					hci_dev, strerror(errno), errno);
 		return;
 	}
-    bt_shell_printf("OCF_LE_SET_ADVERTISING_PARAMETERS status is 0x%x\n", status);
+    bt_shell_printf("OCF_LE_SET_EXTENDED_ADVERTISING_ENABLE status is 0x%x\n", status);
+
+    if (adv_continuously) {
+        pthread_t thread_id;
+        pthread_create(&thread_id, NULL, msc_advertising_using_adv_ext_ind_stop, (void *)&adv_handle);
+    }
     //verify event LE scan request received.
     //expect received LE scan request event
 
 }
 
+void msc_scan_request_notifications(int argc, char **argvcmd_req)
+{
+    uint8_t cfg_use_random_addr = 0;    // 0: not use random addr, 1: use random
+    uint8_t cfg_use_scan_rsp_data = 1;  // 0: not use scan rsp data, else use
+    uint8_t cfg_adv_continuously = 0;   // 0:no timeout, else use timeout
+    uint8_t cfg_adv_handle = 0;         // 0:no timeout, else use timeout
+    //config adv on handle 0 with static address
+    msc_advertising_using_adv_ext_ind_start(cfg_use_random_addr, cfg_use_scan_rsp_data, cfg_adv_continuously, cfg_adv_handle);
+
+}
 void msc_advertising_duration_ended(int argc, char **argvcmd_req)
 {
     uint8_t status = -1;
