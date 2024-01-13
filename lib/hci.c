@@ -3174,9 +3174,9 @@ int hci_write_event_mask(int dd, uint8_t *mask, uint8_t len, int to)
 
 /* each hci command has it own ogf, ocf, return event, and input param, output param
  * here define a command api try to handle*/
-int hci_write_comon_cmd(int dd, uint16_t ogf, uint16_t ocf, 
-								uint32_t expect_event, uint8_t * cparam, uint32_t c_len, 
-								uint8_t *rparam, uint32_t r_len,
+int hci_write_common_cmd(int dd, uint16_t ogf, uint16_t ocf, uint32_t expect_event,
+                                uint8_t * cparam, uint32_t c_len,
+								uint8_t * rparam, uint32_t r_len,
 								int timeout)
 {
 
