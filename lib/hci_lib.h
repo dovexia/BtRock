@@ -159,9 +159,9 @@ int pal_strtover(char *str, unsigned int *ver);
 char *lmp_featurestostr(uint8_t *features, char *pref, int width);
 
 int hci_write_event_mask(int dd, uint8_t *mask, uint8_t len, int to);
-int hci_write_comon_cmd(int dd, uint16_t ogf, uint16_t ocf, 
-								uint32_t expect_event, uint8_t * cparam, uint32_t c_len, 
-								uint8_t *rparam, uint32_t r_len,
+int hci_write_common_cmd(int dd, uint16_t ogf, uint16_t ocf, uint32_t expect_event,
+                                uint8_t * cparam, uint32_t c_len,
+								uint8_t * rparam, uint32_t r_len,
 								int timeout);
 static inline void hci_set_bit(int nr, void *addr)
 {
